@@ -1,5 +1,5 @@
 ;
-; nasm pmtest1.asm -o pmtest1.bin
+; nasm pmtest3.asm -o pmtest.bin
 ; 
 ;
 
@@ -11,15 +11,21 @@
 [SECTION .gdt]
 ; GDT
 ;                                段基址，          段界限, 属性     
-LABEL_GDT:          Descriptor        0,                0,  0               ; 空描述符
-LABEL_DESC_NORMAL:  Descriptor        0,           0ffffh,  DA_DRW          ; 非一致代码段
-LABEL_DESC_CODE32:  Descriptor        0, SegCode32Len - 1,  DA_C + DA_32    ; 非一致代码段
-LABEL_DESC_CODE16:  Descriptor        0,           0ffffh,  DA_C            ; 非一致代码段
-LABEL_DESC_DATA:    Descriptor        0,      DataLen - 1,  DA_DRW          ; Data
-LABEL_DESC_STACK:   Descriptor        0,       TopOfStack,  DA_DRWA + DA_32 ; Stack,32位
-LABEL_DESC_TEST:    Descriptor 0500000h,           0ffffh,  DA_DRW          ; 
-LABEL_DESC_VIDE0：  Descriptor  0B8000h，          0ffffh,  DA_DRW          ; 显存首地址
+LABEL_GDT:           Descriptor        0,                0,  0               ; 空描述符
+LABEL_DESC_NORMAL:   Descriptor        0,           0ffffh,  DA_DRW          ; 非一致代码段
+LABEL_DESC_CODE32:   Descriptor        0, SegCode32Len - 1,  DA_C + DA_32    ; 非一致代码段
+LABEL_DESC_CODE16:   Descriptor        0,           0ffffh,  DA_C            ; 非一致代码段
+LABEL_DESC_CODE_DEST:Descriptor        0,SegCodeDestLen -1,  DA_C + DA_32    ; 非一致代码段
+LABEL_DESC_DATA:     Descriptor        0,      DataLen - 1,  DA_DRW + DA_DPL1; Data
+LABEL_DESC_STACK:    Descriptor        0,       TopOfStack,  DA_DRWA + DA_32 ; Stack,32位
+LABEL_DESC_VIDE0：   Descriptor  0B8000h，          0ffffh,  DA_DRW          ; 显存首地址
+LABEL_DESC_LDT:      Descriptor        0,         LDTLen-1,  DA_LDT          ; LDT
+
+; 门                        目标选择子          偏移      DCount             属性
+LABEL_CALL_GATE_TEST: Gate SelectorCodeDest,         0,            0,  DA_386CGate+DA_DPL0
+
 ; GDT 结束
+
 
 GdtLen      equ     $-LABEL_GDT                                             ; GDT长度
 GdtPtr      dw      GdtLen - 1                                              ; GDT界限
@@ -27,13 +33,16 @@ GdtPtr      dw      GdtLen - 1                                              ; GD
 
 
 ; GDT选择子
-SelectorNormal      equ     LABEL_DESC_NORMAL   - LABEL_GDT
-SelectorCode32      equ     LABEL_DESC_CODE32   - LABEL_GDT
-SelectorCode16      equ     LABEL_DESC_CODE16   - LABEL_GDT
-SelectorData        equ     LABEL_DESC_DATA     - LABEL_GDT
-SelectorStack       equ     LABEL_DESC_STACK    - LABEL_GDT
-SelectorTest        equ     LABEL_DESC_TEST     - LABEL_GDT
-SelectorVideo       equ     LABEL_DESC_VIDE0    - LABEL_GDT
+SelectorNormal       equ     LABEL_DESC_NORMAL      - LABEL_GDT
+SelectorCode32       equ     LABEL_DESC_CODE32      - LABEL_GDT
+SelectorCode16       equ     LABEL_DESC_CODE16      - LABEL_GDT
+SelectorCodeDest     equ     LABEL_DESC_CODE_DEST   - LABEL_GDT
+SelectorData         equ     LABEL_DESC_DATA        - LABEL_GDT
+SelectorStack        equ     LABEL_DESC_STACK       - LABEL_GDT
+SelectorVideo        equ     LABEL_DESC_VIDE0       - LABEL_GDT
+SelectorLDT          equ     LABEL_DESC_LDT         - LABEL_GDT
+
+SelectorCodeGateTest equ     LABEL_CALL_GATE_TEST   - LABEL_GDT
 
 
 ; 数据段
@@ -93,6 +102,18 @@ LABEL_BEGIN:
         mov byte [LABEL_DESC_CODE32 + 4],al
         mov byte [LABEL_DESC_CODE32 + 7],ah
 
+
+        ; 初始化测试调用门的代码段描述符
+        xor eax,eax
+        mov ax,cs
+        shl eax,4
+        add eax,LABEL_SEG_CODE_DEAT
+        mov word [LABEL_DESC_CODE_DEST + 2],ax
+        shr eax,16
+        mov byte [LABEL_DESC_CODE_DEST + 4],al
+        mov byte [LABEL_DESC_CODE_DEST + 7],ah
+
+
         ; 初始化数据段描述符
         xor eax,eax
         mov ax,ds
@@ -112,6 +133,26 @@ LABEL_BEGIN:
         shr eax,16
         mov byte [LABEL_DESC_STACK + 4],al
         mov byte [LABEL_DESC_STACK + 7],ah
+
+        ; 初始化LDT在GDT中的描述符
+        xor eax,eax
+        mov ax,ds
+        shl eax,4
+        add eax,LABEL_LDT
+        mov word [LABEL_DESC_LDT + 2],ax
+        shr eax,16
+        mov byte [LABEL_DESC_LDT + 4],al
+        mov byte [LABEL_DESC_LDT + 7],ah
+
+        ; 初始化LDT中的描述符
+        xor eax,eax
+        mov ax,ds
+        shl eax,4
+        add eax,LABEL_CODE_A
+        mov word [LABEL_LDT_DESC_CODEA + 2],ax
+        shr eax,16
+        mov byte [LABEL_LDT_DESC_CODEA + 4],al
+        mov byte [LABEL_LDT_DESC_CODEA + 7],ah
 
         ; 为加载 GDTR 作准备
         xor eax,eax
@@ -158,12 +199,10 @@ LABEL_REAL_ENTRY:
 
 
 [SECTION .s32]
-
+        [bits 32]
 LABEL_SEG_CODE32:
         mov ax,SelectorData                 ; 数据段选择子
         mov ds,ax
-        mov ax,SelectorTest                 ; 测试段选择子
-        mov es,ax
         mov ax,SelectorVideo                ; 视频段选择子
         mov gs,ax
 
@@ -190,74 +229,14 @@ LABEL_SEG_CODE32:
     .2:
         call DispReturn
 
-        call TestRead
-        call TestWrite
-        call TestRead
+        ; 测试调用门
+        call SelectorCodeGateTest:0
 
-        jmp SelectorCode16:0
+        ; load LDT
+        mov ax,SelectorLDT
+        lldt ax
 
-;------------------------------------------------------------------------
-TestRead:
-        xor esi,esi
-        mov ecx,8
-    .loop:
-        mov al,[es:esi]
-        call DispAL
-        inc esi
-        loop .loop
-        call DispReturn
-        ret
-;------------------------------------------------------------------------
-TestWrite:
-        push esi
-        push edi
-        xor esi,esi
-        xor edi,edi
-        mov esi,OffestStrTest
-        cld
-    .1:
-        loadsb
-        test al,al
-        iz .2
-        mov [es:edi],al
-        inc edi
-        jmp .1
-    .2:
-        pop edi
-        pop esi
-        
-        ret
-;------------------------------------------------------------------------
-; 显示 al 中的数字 
-;
-DispAL:
-        push ecx
-        push edx
-        
-        mov ah,0CH
-        mov dl,al
-        shr al,4
-        mov ecx,2
-    .begin:
-        and al,01111b
-        cmp al,9
-        ja  .1
-        add al,'0'
-        jmp .2
-    .1:
-        sub al,0Ah
-        add al,'A'
-    .2:
-        mov [gs:edi],ax
-        add edi,2
-
-        mov al,dl
-        loop .begin
-        add edi,2
-
-        pop edx
-        pop ecx
-        ret
+        jmp SelectorLDTCodeA:0
 
 ;-----------------------------------------------------------------------
 
@@ -278,6 +257,22 @@ DispReturn:
 
 
 SegCode32Len    equ $ - LABEL_SEG_CODE32
+
+
+; 调用门目标段
+[SECTION .sdest]
+        [bits 32]
+
+LABEL_SEG_CODE_DEST:
+        mov ax,SelectorVideo
+        mov gs,ax
+        mov edi,(80*12+0)*2
+        mov ah,0ch
+        mov al,'c'
+        mov [gs:edi],ax        
+        retf
+
+SegCodeDestLen  equ $ -LABEL_SEG_CODE_DEST 
 
 
 [SECTION .s16code]
@@ -302,9 +297,30 @@ LABEL_GO_BACK_TO_REAL:
 Code16Len       equ $ - LABEL_SEG_CODE16
 
 
+[SECTION .ldt]
+ALIGN 32
+LABEL_LDT:
+;
+LABEL_LDT_DESC_CODEA: Descriptor        0,        CodeALen-1,  DA_C + DA_32      ; Code 32
 
+LDTLen      equ     $ - LABEL_LDT
 
+; LDT 选择子
+SelectorLDTCodeA    equ     LABEL_LDT_DESC_CODEA        - LABEL_LDT + SA_TIL
 
+[SECTION .la]
+ALIGN 32
+    [bits 32]
+LABEL_CODE_A:
+        mov ax,SelectorVideo
+        mov gs,ax
 
+        mov edi,(80 * 12 + 0) * 2
+        mov ah,0CH
+        mov al,'L'
+        mov [gs:edi],ax
 
+        ; 跳回实模式
+        jmp SelectorCode16:0
 
+CodeALen        equ     $ - LABEL_CODE_A

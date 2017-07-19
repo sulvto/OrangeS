@@ -1,5 +1,5 @@
 ;
-; nasm pmtest1.asm -o pmtest1.bin
+; nasm pmtest3.asm -o pmtest.bin
 ; 
 ;
 
@@ -19,6 +19,7 @@ LABEL_DESC_DATA:    Descriptor        0,      DataLen - 1,  DA_DRW          ; Da
 LABEL_DESC_STACK:   Descriptor        0,       TopOfStack,  DA_DRWA + DA_32 ; Stack,32位
 LABEL_DESC_TEST:    Descriptor 0500000h,           0ffffh,  DA_DRW          ; 
 LABEL_DESC_VIDE0：  Descriptor  0B8000h，          0ffffh,  DA_DRW          ; 显存首地址
+LABEL_DESC_LDT:     Descriptor        0,         LDTLen-1,  DA_LDT          ; LDT
 ; GDT 结束
 
 GdtLen      equ     $-LABEL_GDT                                             ; GDT长度
@@ -34,7 +35,7 @@ SelectorData        equ     LABEL_DESC_DATA     - LABEL_GDT
 SelectorStack       equ     LABEL_DESC_STACK    - LABEL_GDT
 SelectorTest        equ     LABEL_DESC_TEST     - LABEL_GDT
 SelectorVideo       equ     LABEL_DESC_VIDE0    - LABEL_GDT
-
+SelectorLDT         equ     LABEL_DESC_LDT      - LABEL_GDT
 
 ; 数据段
 [SECTION .data1]
@@ -113,6 +114,26 @@ LABEL_BEGIN:
         mov byte [LABEL_DESC_STACK + 4],al
         mov byte [LABEL_DESC_STACK + 7],ah
 
+        ; 初始化LDT在GDT中的描述符
+        xor eax,eax
+        mov ax,ds
+        shl eax,4
+        add eax,LABEL_LDT
+        mov word [LABEL_DESC_LDT + 2],ax
+        shr eax,16
+        mov byte [LABEL_DESC_LDT + 4],al
+        mov byte [LABEL_DESC_LDT + 7],ah
+
+        ; 初始化LDT中的描述符
+        xor eax,eax
+        mov ax,ds
+        shl eax,4
+        add eax,LABEL_CODE_A
+        mov word [LABEL_LDT_DESC_CODEA + 2],ax
+        shr eax,16
+        mov byte [LABEL_LDT_DESC_CODEA + 4],al
+        mov byte [LABEL_LDT_DESC_CODEA + 7],ah
+
         ; 为加载 GDTR 作准备
         xor eax,eax
         mov ax,ds
@@ -190,11 +211,10 @@ LABEL_SEG_CODE32:
     .2:
         call DispReturn
 
-        call TestRead
-        call TestWrite
-        call TestRead
-
-        jmp SelectorCode16:0
+        ; load LDT
+        mov ax,SelectorLDT
+        lldt ax
+        jmp SelectorLDTCodeA:0
 
 ;------------------------------------------------------------------------
 TestRead:
@@ -302,9 +322,30 @@ LABEL_GO_BACK_TO_REAL:
 Code16Len       equ $ - LABEL_SEG_CODE16
 
 
+[SECTION .ldt]
+ALIGN 32
+LABEL_LDT:
+;
+LABEL_LDT_DESC_CODEA: Descriptor        0,        CodeALen-1,  DA_C + DA_32      ; Code 32
 
+LDTLen      equ     $ - LABEL_LDT
 
+; LDT 选择子
+SelectorLDTCodeA    equ     LABEL_LDT_DESC_CODEA        - LABEL_LDT + SA_TIL
 
+[SECTION .la]
+ALIGN 32
+    [bits 32]
+LABEL_CODE_A:
+        mov ax,SelectorVideo
+        mov gs,ax
 
+        mov edi,(80 * 12 + 0) * 2
+        mov ah,0CH
+        mov al,'L'
+        mov [gs:edi],ax
 
+        ; 跳回实模式
+        jmp SelectorCode16:0
 
+CodeALen        equ     $ - LABEL_CODE_A
