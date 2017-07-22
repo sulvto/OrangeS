@@ -1,15 +1,22 @@
 ;
-; nasm pmtest7.asm -o pmtest.bin
+; nasm pmtest9.asm -o pmtest.bin
 ; 
 ;
 
 %include        "pm.inc"
 
-PageDirBase     equ     200000h     ; 页目录开始地址： 2M
-PageTblBase     equ     201000h     ; 页表开始地址： 2M + 4k
+PageDirBase0     equ     200000h     ; 页目录开始地址： 2M
+PageTblBase0     equ     201000h     ; 页表开始地址：   2M + 4k
+PageDirBase1     equ     210000h     ; 页目录开始地址： 2M + 64K
+PageTblBase1     equ     211000h     ; 页表开始地址：   2M + 64k + 4k
 
 
-    org     07c00h
+LinearAddrDemo  equ     00401000h
+ProcFoo         equ     00401000h
+ProcBar         equ     00501000h
+ProcPaginDemo   equ     00301000h 
+
+    org     0100h
         jmp LABEL_BEGIN
 
 [SECTION .gdt]
@@ -17,8 +24,8 @@ PageTblBase     equ     201000h     ; 页表开始地址： 2M + 4k
 ;                                段基址，          段界限, 属性     
 LABEL_GDT:          Descriptor        0,                0,  0               ; 空描述符
 LABEL_DESC_NORMAL:  Descriptor        0,           0ffffh,  DA_DRW          ; 非一致代码段
-LABEL_DESC_PAGE_DIR:Descriptor  PageDirBase,         4095,  DA_DRW          ; Page Directory
-LABEL_DESC_PAGE_TBL:Descriptor  PageTblBase,     4096*8-1,  DA_DRW          ; Page Tables
+LABEL_DESC_FLAT_C:  Descriptor        0,           0ffffh,  DA_C|DA_32|DA_LIMIT_4K      ; 0~4G
+LABEL_DESC_FLAT_RW: Descriptor        0,           0ffffh,  DA_DRW|DA_LIMIT_4K          ; 0~4G
 LABEL_DESC_CODE32:  Descriptor        0, SegCode32Len - 1,  DA_C + DA_32    ; 非一致代码段
 LABEL_DESC_CODE16:  Descriptor        0,           0ffffh,  DA_C            ; 非一致代码段
 LABEL_DESC_DATA:    Descriptor        0,      DataLen - 1,  DA_DRW          ; Data
@@ -33,8 +40,8 @@ GdtPtr      dw      GdtLen - 1                                              ; GD
 
 ; GDT选择子
 SelectorNormal      equ     LABEL_DESC_NORMAL   - LABEL_GDT
-SelectorPageDir     equ     LABEL_DESC_PAGE_DIR - LABEL_GDT
-SelectorPageTbl     equ     LABEL_DESC_PAGE_TBL - LABEL_GDT
+SelectorFlatC       equ     LABEL_DESC_FLAT_C   - LABEL_GDT
+SelectorFlatRW      equ     LABEL_DESC_FLAT_RW  - LABEL_GDT
 SelectorCode32      equ     LABEL_DESC_CODE32   - LABEL_GDT
 SelectorCode16      equ     LABEL_DESC_CODE16   - LABEL_GDT
 SelectorData        equ     LABEL_DESC_DATA     - LABEL_GDT
@@ -71,7 +78,10 @@ ALIGN   32
             _dwLengthLow:   dd  0
             _dwLengthHige:  dd  0
             _dwType:        dd  0
-        
+        _PageTableNumber    dd  0
+        _SavedIDTR:         dd  0               ; 用于保存 IDTR
+                            dd  0
+        _SavedIMREG:        db  0               ; 中断屏蔽寄存器值
         _MemChkBuf:    times 256 db 0
         
         ; 保护模式下使用这些符号
@@ -90,10 +100,32 @@ ALIGN   32
             dwType              equ _dwType            - $$ 
        
         MemChkBuf       equ _MemChkBuf      - $$
+        SavedIDTR       equ _SavedIDTR      - $$
+        SavedIMREG      equ _SavedIMREG     - $$
+        PageTableNumber equ _PageTableNumber- $$
 
         DateLen         equ $ - LABEL_DATA
 
+; IDT
+[SECTION .idt]
+ALIGN   32
+    [bits 32]
+LABEL_IDT:
+; 门
+%rep 32
+            Gate    SelectorCode32,SpuriousHandler,0,   DA_386IGate
+%endrep
+.020h:  Gate    SelectorCode32,ClockHandler,  0,  DA_386IGate
+%rep 95
+            Gate    SelectorCode32,SpuriousHandler,0,   DA_386IGate
+%endrep
+.080h:  Gate    SelectorCode32,UserIntHandler,0,  DA_386IGate
 
+IdtLen      equ         $ - LABEL_IDT
+IdtPtr      dw  IdtLen - 1
+            dd  0
+
+; 全局堆栈段
 [SECTION .gs]
 ALIGN   32
     [bits 32]
@@ -182,6 +214,19 @@ LABEL_BEGIN:
         add eax,LABEL_GDT
         mov dword [GdtPtr + 2],eax
 
+        ; 为加载 IDTR 作准备
+        xor eax,eax
+        mov ax,ds
+        shl eax,4
+        add eax,LABEL_IDT
+        mov dword [IdtPtr + 2],eax
+
+        ; 保存 IDTR
+        sidt    [_SavedIDTR]
+        ; 保存中断屏蔽寄存器（IMREG）值
+        in al,21h
+        mov [_SavedIMREG],al
+
         ; 加载 GDTR
         lgdt    [GdtPtr]
         
@@ -209,11 +254,15 @@ LABEL_REAL_ENTRY:
         
         mov sp,[_wSPValueInRealMode]
 
+        lidt [_SavedIDTR]       ; 恢复 IDTR 的值
+        mov al,[_SavedIMREG]    ;恢复中断屏蔽寄存器（IMREG）的值
+        out 21h,al
+
         in al,92h
         and al,11111101b
         out 92h,al
 
-        sti
+        
 
         mov ax,4c00h
         int 21h
@@ -224,8 +273,6 @@ LABEL_REAL_ENTRY:
 LABEL_SEG_CODE32:
         mov ax,SelectorData                 ; 数据段选择子
         mov ds,ax
-
-        mov ax,SelectorData                 ; 数据段选择子
         mov es,ax
 
         mov ax,SelectorVideo                ; 视频段选择子
@@ -236,18 +283,131 @@ LABEL_SEG_CODE32:
 
         mov esp,TopOfStack
 
+        call Init8259A
+        int 080h
+    sti
+        jmp $
+
         ; 显示一个字符串
 
         push szPMMessage
         call DispStr
         add esp,4
     
+        push szMemChkTitle
+        call DispStr
+        add esp,4
+
         call DispMemSize                    ; 显示内存信息
 
-        call SetupPaging                    ; 启动分页信息
+        call PagingDemo                    ; 启动分页信息
 
+        call SetRealmode8259A
+
+        ; 到此为止
         jmp SelectorCode16:0
 
+;---------------------------------------------------------------------
+
+Init8259A:
+        mov al,011h
+        out 020h,al
+        call io_delay
+
+        out 0A0h,al
+        call io_delay
+        
+        mov al,020h
+        out 021h,al
+        call io_delay
+
+        mov al,028h
+        out 0A1h,al
+        call io_delay
+
+        mov al,004h
+        out 021h,al
+        call io_delay
+
+        mov al,002h
+        out 0A1h,al
+        call io_delay
+                      
+        mov al,001h
+        out 021h,al
+        call io_delay
+
+        out 0A1h,al
+        call io_delay
+                      
+        mov al,11111110b
+        out 021h,al
+        call io_delay
+
+        mov al,11111111h
+        out 0A1h,al
+        call io_delay
+                              
+        ret
+
+;---------------------------------------------------------------------
+
+SetRealmode8259A:
+        mov ax,SelectorData
+        mov fs,ax
+
+        mov al,017h
+        out 020h,al
+        call io_delay
+
+        mov al,008h
+        out 021h,al
+        call io_delay
+
+        mov al,001h
+        out 021h,al
+        call io_delay
+
+
+        mov al,[fs:SavedIMREG]
+        out 021h,al
+        call io_delay
+        
+        ret
+
+;---------------------------------------------------------------------
+
+io_delay:
+        nop 
+        nop
+        nop
+        nop
+        ret
+
+;---------------------------------------------------------------------
+
+_ClockHandler:
+ClockHandler        equ     _ClockHandler - $$
+        inc byte [gs:((80 * 0 + 70) * 2)]
+        mov al,20h
+        out 20h,al
+        iretd
+
+_UserIntHandler:
+UserIntHandler      equ     _UserIntHandler  - $$
+        mov ah,0Ch
+        mov al,'I'
+        mov [gs:((80 * 0 + 70) * 2)],ax
+        iretd
+
+_SpuriousHandler:
+SpuriousHandler     equ     _SpuriousHandler - $$
+        mov ah,0Ch
+        mov al,'!'
+        mov [gs:((80 * 0 + 75) * 2)],ax
+        jmp $
+        iretd
+;---------------------------------------------------------------------
 
 ;------------------------------------------------------------------------
 ; 启动分页机制
@@ -262,30 +422,27 @@ SetupPaging:
         jz .no_remainder
         inc ecx                         ; 如果余数不为0就增加一个页表
     .no_remainder:
-        push ecx                        ; 页表个数
+        mov [PageTableNumber] ecx                        ; 页表个数
 
         ; 为了简化处理，所有线性地址对应相等的物理地址，并且不考虑内存空洞
 
         ; 初始化页目录
-        mov ax,SelectorPageDir
+        mov ax,SelectorFlatRW
         mov es,ax
-        mov ecx,1024
-        xor edi,edi
+        mov edi,PageDirBase0
         xor eax,eax
-        mov eax,PageTblBase | PG_P | PG_USU | PG_RWW
+        mov eax,PageTblBase0 | PG_P | PG_USU | PG_RWW
     .1:
         stosd
         add eax,4096
         loop .1
 
         ; 再初始化所有页表
-        mov ax,SelectorPageTbl
-        mov es,ax
-        pop eax                         ; 页表个数
+        mov ax,[PageTableNumber]        ; 页表个数
         mov ebx,1024                    ; 每个页表1024个PTE
         mul ebx
         mov ecx,eax                     ; PTE个数 = 页表个数 * 1024
-        xor edi,edi
+        xor edi,PageTblBase0
         xor eax,eax
         mov eax,PG_P|PG_USU|PG_RWW
     .2: 
@@ -293,18 +450,139 @@ SetupPaging:
         add eax,4096                    ; 每一页指向 4K 的空间
         loop .2
         
-        mov eax,PageDirBase
+        mov eax,PageDirBase0
         mov cr3,eax 
         mov eax,cr0
         or eax,80000000h
-        mov cr0,eax
+        mov cr0,eax     
         jmp short .3
     .3:
         nop
         ret
 
+;---------------------------------------------------------------------
 
 
+;
+; 测试分页机制
+;
+PagingDemo:
+        mov ax,cs
+        mov ds,ax
+        mov ax,SelectorFlatRW
+        mov es,ax
+
+        push LenFoo
+        push OffsetFoo
+        push ProcFoo
+        call MemCpy
+        add esp,12
+
+        push LenBar
+        push OffsetBar
+        push ProcBar
+        call MenCpy
+        add esp,12
+
+        push LenPagingDemoAll   
+        push OffsetPagingDemoProc
+        push ProcPagingDemo
+        call MemCpy
+        add esp,12
+
+        mov ax,SelectorData
+        mov dx,ax
+        mov es,ax
+        
+        call SetupPaging            ; 启动分页
+
+        call SelectorFlatC:ProcPagingDemo
+        call PSwitch                ; 切换页目录，改变地址映射关系
+        call SelectorFlatC:ProcPagingDemo
+
+        ret
+
+;---------------------------------------------------------------------
+
+; 切换页表
+PSwitch:
+        mov ax,SelectorFlatRW
+        mov es,ax
+        mov edi,PageDirBase1
+        xor eax,eax
+        mov eax,PageTblBase1 | PG_P | PG_USU | PG_RWW
+        mov ecx,[PageTableNumber]
+    .1:
+        stosd
+        add eax,4096
+        loop .1
+        
+        mov eax,[PageTableNumber]
+        mov ebx,1024
+        mul ebx
+        mov ecx,eax
+        mov edi,PageTblBase1
+        xor eax,eax
+        mov eax,PG_P | PG_USU | PG_RWW
+    .2:
+        srosd
+        add eax,4096
+        loop .2
+        
+        mov eax,LinearAddrDemo
+        shr eax,22
+        mov ebx,4096
+        mul ebx
+        mov ecx,eax
+        mov eax,LinearAddrDemo
+        shr eax,12
+        and eax,03FFh
+        mov ebx,4
+        mul ebx
+        add eax,ecx
+        add eax,PageTblBase1
+
+        mov dword [es:eax],ProcBar | PG_P | PG_USU | PG_RWW
+        mov eax,PageDirBase1
+        mov cr3,eax
+        jmp short .3
+    .3:
+        nop
+    
+        ret
+;---------------------------------------------------------------------
+
+PagingDemoProc:
+OffsetPagingDemoProc        equ     PagingDemoProc - $$
+        mov eax,LinearAddrDemo
+        call eax
+        reft
+LenPagingDemoAll        equ     4 - PagingDemoProc
+
+foo:
+OffsetFoo               equ     foo - $$
+        mov ah,0Ch                      ;  0000：黑底    1100：红字
+        mov al,'F'
+        mov [gs:((80 * 17 + 0) * 2)],ax ; 屏幕第 17 行，第 0 列    
+        mov al,'o'
+        mov [gs:((80 * 17 + 1) * 2)],ax ; 屏幕第 17 行，第 1 列      
+        mov [gs:((80 * 17 + 2) * 2)],ax ; 屏幕第 17 行，第 2 列    
+        ret
+LenFoo          equ     $ - foo
+
+bar:
+OffsetBar       equ     bar - $$
+        mov ah,0Ch
+        mov al,'B'
+        mov [gs:((80 * 18 + 0) * 2)],ax ; 屏幕第 18 行，第 0 列      
+        mov al,'a'
+        mov [gs:((80 * 18 + 1) * 2)],ax ; 屏幕第 18 行，第 1 列      
+        mov al,'r'
+        mov [gs:((80 * 18 + 2) * 2)],ax ; 屏幕第 18 行，第 2 列      
+LenBar      equ     $ - bar
+
+;---------------------------------------------------------------------
+; 显示内存信息
 DispMemSize:
         push esi
         push edi    
