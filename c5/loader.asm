@@ -1,15 +1,33 @@
         org     0100h
         
-        BaseOfStack         equ     0100h
-        
-        ; kernel.bin 被加载的位置
-        BaseOfKernelFile    equ     01000h  ; 段地址
-        OffsetOfKernelFile  equ     0h      ; 偏移地址
-
         jmp start
 
 ; FAT12 磁盘的头
 %include    "fat12hdr.inc"
+%include    "load.inc"
+%include    "pm.inc"
+
+; GDT
+;
+GDT:            Descriptor      0,        0,  0           
+DESC_FLA_C:     Descriptor      0,  0fffffh, DA_CR|DA_32|DA_LIMIT_4K
+DESC_FALT_RW:   Descriptor      0,  0fffffh, DA_DRW|DA_32|DA_LIMIT_4K 
+DESC_VISEO:     Descriptor  0B8000h, 0ffffh, DA_DRW|DA_DPL3
+
+GdtLen      equ $ - GDT                     
+GdtPtr      dw  GdtLen - 1                ; 段界限
+            dd  BaseOfLoaderPhyAddr + GDT ; 基地址
+
+; GDT 选择子
+SelectorFlatC       equ     DESC_FLA_C      - GDT
+SelectorFlatRW      equ     DESC_FALT_RW    - GDT
+SelectorVideo       equ     DESC_VISEO      - GDT + SA_RPL3
+
+
+        BaseOfStack         equ     0100h
+        PageDirBase         equ     100000h
+        PageTblBase         equ     101000h
+
 
 start:
         mov ax,cs
@@ -19,8 +37,26 @@ start:
         mov sp,BaseOfStack
 
         mov dh,0                           ; "Loading  "
-        call DispStr
+        call DispStrRealMode
 
+        ; 得到内存数
+        mov ebx,0
+        mov di,_MemChkBuf
+    .MemChkLoop:
+        mov eax,0E820h
+        mov ecx,20
+        mov edx,0534D4150h
+        int 15h
+        jc  .MemChkFail
+        add di,20
+        inc dword [_dwMCRNumber]
+        cmp ebx,0
+        jne .MemChkLoop
+        jmp .MemChkOk
+    .MemChkFail:
+        mov dword [_dwMCRNumber],0
+    .MemChkOk:
+        
         ; 寻找 kernel.bin
         mov word [wSectorNo],SectorNoOfRootDirectory
 
@@ -124,7 +160,30 @@ start:
     
         mov dh,1                            ; "Ready."
         call DispStr
+        
+        ; 准备进入保护模式
+        
+        ; 加载 GDTR
+        lgdt    [GdtPtr]
+        
+        ; 关中断
+        cli
+
+        ; 打开地址线 A20
+        in al,92h
+        or al,00000010b
+        out 92h,al
+
+        ; 准备切换到保护模式
+        mov eax,cr0
+        or eax,1
+        mov cr0,eax
+
+        ; 真正进入保护模式
+        jmp dword SelectorFlatC:(BaseOfLoaderPhyAddr+PM_START) ;
+
         jmp $
+
 
 ;=====================================================================
 ; 变量
@@ -254,3 +313,132 @@ KillMotor:
         out dx,al
         pop dx
         ret
+
+;---------------------------------------------------------------------
+[SECTION .s32]
+ALIGN   32
+[bits 32]
+
+PM_START:
+        mov ax,SelectorVideo
+        mov gs,ax
+        
+        mov ax,SelectorFlatRW
+        mov ds,ax
+        mov es,ax
+        mov fs,ax
+        mov ss,ax
+        mov esp,TopOfStack
+
+        push szMemChkTitle
+        call DispStr
+        add esp,4
+        
+        call DispMemInfo
+        call SetupPaging
+
+        mov ah,0Fh
+        mov al,'P'
+        mov [gs:((80 * 0 + 39) * 2)],ax
+        jmp $
+
+%include    "lib.inc"
+
+;---------------------------------------------------------------------
+; 显示内存信息
+DispMemInfo:
+        push esi
+        push edi
+        push ecx
+    
+        mov esi,MemChkBuf
+        mov ecx,[dwMCRNumber]
+    .loop:
+        mov edx,5
+        mov edi,ARDStrtuct
+        
+    .1:
+        push dword [esi]
+        call DispInt
+        pop eax
+        stosd
+        add esi,4
+        dec edx
+        cmp dex,0
+        jnz .1
+        call DispReturn
+        cmp dword [dwType],1
+        jne .2
+        mov eax,[dwBaseAddrLow]
+        add eax,[dwLengthLow]
+        cmp eax,[dwMemSize]
+        jb .2
+        mov [dwMemSize],eax
+        
+    .2:
+        loop .loop
+
+        call DispReturn
+        push szRAMSize
+        call DispStr
+        add esp,4
+
+        push dword [dwMemSize]
+        call DispInt
+        add esp,4
+
+        pop ecx
+        pop edi
+        pop esi
+        ret
+;---------------------------------------------------------------------
+; 启动分页机制
+SetupPaging:
+        ; 根据内存大小计算应初始化多少PDE以及多少页表
+        xor edx,edx
+        mov eax,[dwMemSize]
+        ; TODO
+
+
+
+[SECTION .data1]
+ALIGN   32
+
+DATA:
+; 实模式下使用
+; 字符串
+_szMemChkTitle: db "BaseAddrL BaseAddrH LengthLow LengthHigh Type",0Ah,0
+_szRAMSize:     db "RAM size",0
+_szReturn:      db 0Ah,0
+; 变量
+_dwMCRNumber:   dd 0
+_dwDispPos:     dd (80 * 6 + 0) * 2
+_dwMemSize:         dd  0
+; Address Range Descriptor structure
+_ARDStruct:
+    _dwBaseAddrLow: dd  0
+    _dwBaseAddrHige:dd  0
+    _dwLengthLow:   dd  0
+    _dwLengthHige:  dd  0
+    _dwType:        dd  0
+_MemChkBuf:    times 256 db 0
+
+; 保护模式下使用这些符号
+szMemChkTitle           equ BaseOfLoaderPhyAddr + _szMemChkTitle   
+szRAMSize               equ BaseOfLoaderPhyAddr + _szRAMSize      
+szReturn                equ BaseOfLoaderPhyAddr + _szReturn       
+dwDispPos               equ BaseOfLoaderPhyAddr + _dwDispPos      
+dwMemSize               equ BaseOfLoaderPhyAddr + _dwMemSize      
+dwMCRNumber             equ BaseOfLoaderPhyAddr + _dwMemSize      
+ARDStruct               equ BaseOfLoaderPhyAddr + _ARDStruct      
+    dwBaseAddrLow       equ BaseOfLoaderPhyAddr + _dwBaseAddrLow  
+    dwBaseAddrHige      equ BaseOfLoaderPhyAddr + _dwBaseAddrHige 
+    dwLengthLow         equ BaseOfLoaderPhyAddr + _dwLengthLow    
+    dwLengthHige        equ BaseOfLoaderPhyAddr + _dwLengthHige   
+    dwType              equ BaseOfLoaderPhyAddr + _dwType         
+
+MemChkBuf               equ BaseOfLoaderPhyAddr + _MemChkBuf     
+
+; 堆栈
+StackSpace: times 1000h db  0
+TopOfStack: equ BaseOfLoaderPhyAddr + $
