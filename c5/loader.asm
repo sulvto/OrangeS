@@ -182,7 +182,6 @@ start:
         ; 真正进入保护模式
         jmp dword SelectorFlatC:(BaseOfLoaderPhyAddr+PM_START) ;
 
-        jmp $
 
 
 ;=====================================================================
@@ -207,7 +206,7 @@ Message2:               db  "No Kernel"
 ; 显示字符串
 ; dh： 字符串序号
 ;
-DispStr:
+DispStrRealMode:
         mov ax,MessageLength
         mul dh
         add ax,LoadMessage  
@@ -218,7 +217,6 @@ DispStr:
         mov ax,01301h
         mov bx,0007h
         mov dl,0
-        add dh,3
         int 10h
         ret
 
@@ -340,10 +338,45 @@ PM_START:
         mov ah,0Fh
         mov al,'P'
         mov [gs:((80 * 0 + 39) * 2)],ax
-        jmp $
+
+        call InitKernel
+        jmp SelectorFlatC:KernelEntryPointPhyAddr
 
 %include    "lib.inc"
+;---------------------------------------------------------------------
+; 内存拷贝
+MemCpy:
+        push ebp
+        mov ebp,esp
+        
+        push esi
+        push edi
+        push ecx
 
+        mov edi,[ebp + 8]
+        mov esi,[ebp + 12]
+        mov ecx,[ebp + 16]
+    .1:
+        cmp ecx,0
+        jz .z
+        
+        mov al,[ds:esi]
+        inc esi
+        
+        mov byte [es:edi],al
+        inc edi
+        
+        dec ecx
+        jmp .1
+    .2:
+        mov eax,[ebp + 8]
+        pop ecx
+        pop edi
+        pop esi
+        mov esp,ebp
+        pop ebp
+
+        ret
 ;---------------------------------------------------------------------
 ; 显示内存信息
 DispMemInfo:
@@ -397,8 +430,78 @@ SetupPaging:
         ; 根据内存大小计算应初始化多少PDE以及多少页表
         xor edx,edx
         mov eax,[dwMemSize]
-        ; TODO
+        mov ebx,400000h             ; 400000h = 4M = 4096 * 1024
+        div ebx
+        mov ecx,eax                 ; 此时 ecx 为页表的个数，也即 PDE 应该的个数 
+        test edx,edx
+        jz .no_remainder
+        inc ecx                     ; 如果余数不为0就增加一个页表
+    .no_remainder:
+        push ecx                    ; 页表个数
+        
+        ; 为简化处理，所有线性地址对应相等的物理地址，并且不考虑内存空间
+        ; 初始化页目录
+        mov ax,SelectorFlatRW
+        mov es,ax
+        mov edi,PageDirBase
+        xor eax,eax
+        mov eax,PageTblBase|PG_P|PG_USU|PG_RWW
+    .1:
+        stosd
+        add eax,4096
+        loop .1
 
+        ; 在初始化所有页表
+        pop eax
+        mov ebx,1024
+        mul ebx
+        mov ecx,eax
+        mov edi,PageTblBase
+        xor eax,eax
+        mov eax,PG_P|PG_USU|PG_RWW
+    .2:
+        stosd
+        add eax,4096
+        loop .2
+        
+        mov eax,PageDirBase
+        mov cr3,eax
+        mov eax,cr0 
+        or eax,80000000h
+        mov cr0,eax
+        jmp short .3
+    .3:
+        nop
+        ret
+;---------------------------------------------------------------------
+; 将 kernel.bin 的内容经过整理对齐后放到新的位置
+; 遍历每一个 Program Header, 根据 Program Header 中的信息来确定把什么放到内存，放到什么位置，以及放多少
+InitKernel:
+        xor esi,esi
+        mov cx,word [BaseOfKernelFilePhyAddr+2Ch]   ; ecx <- pELFHdr->e_phnum
+        movzx ecx,cx    
+        mov esi,[BaseOfKernelFilePhyAddr + 1Ch]     ; esi <- pELFHdr->e_phoff
+        add esi,BaseOfKernelFilePhyAddr
+    .begin:
+        mov eax,[esi]
+        cmp eax,0                           ; PT_NULL
+        jz .no_action
+        push dword [esi+010h]
+        mov eax,[esi+04h]
+        add eax,BaseOfKernelFilePhyAddr
+        push eax
+        push dword [esi+08h]
+        call MemCpy
+        add esp,12
+    .no_action:
+        add esi,020h
+        dec ecx
+        jnz .begin
+
+        ret
+        
+;=====================================================================
+        
 
 
 [SECTION .data1]
@@ -441,4 +544,4 @@ MemChkBuf               equ BaseOfLoaderPhyAddr + _MemChkBuf
 
 ; 堆栈
 StackSpace: times 1000h db  0
-TopOfStack: equ BaseOfLoaderPhyAddr + $
+TopOfStack  equ BaseOfLoaderPhyAddr + $
