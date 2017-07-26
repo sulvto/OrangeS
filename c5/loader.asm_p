@@ -29,12 +29,12 @@ SelectorVideo       equ     DESC_VISEO      - GDT + SA_RPL3
 
 start:
         mov ax,cs
-        mov ds,ax
+        mov dx,ax
         mov es,ax
         mov ss,ax
         mov sp,BaseOfStack
 
-        mov dh,0                           ; "Loading  "
+        mov dh,2                           ; "Loading  "
         call DispStrRealMode
 
         ; 得到内存数

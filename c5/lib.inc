@@ -20,7 +20,7 @@ DispAL:
         sub al,0Ah
         add al,'A'
     .2: 
-        mov[gs:edi],ax
+        mov [gs:edi],ax
         add edi,2
         
         mov al,dl
@@ -53,7 +53,7 @@ DispInt:
         mov eax,[esp + 4]
         call DispAL
 
-        mov ah,0&h
+        mov ah,07h
         mov al,'h'
         push edi
         mov edi,[dwDispPos]
@@ -127,7 +127,7 @@ MemCpy:
         mov ecx,[ebp + 16]
     .1:
         cmp ecx,0
-        jz .z
+        jz .2
         
         mov al,[ds:esi]
         inc esi
