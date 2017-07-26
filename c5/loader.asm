@@ -334,13 +334,14 @@ PM_START:
         call DispStr
         add esp,4
         
-        call DispMemInfo
+        ; call DispMemInfo
         call SetupPaging
 
         ; mov ah,0Fh
         ; mov al,'P'
         ; mov [gs:((80 * 0 + 39) * 2)],ax
 
+        ; jmp $
         call InitKernel
         jmp SelectorFlatC:KernelEntryPointPhyAddr
 
@@ -434,6 +435,8 @@ DispStr:
         div bl
         and eax,0FFh
         inc eax
+        mov bl,160
+        mul bl
         mov edi,eax
         pop eax
         jmp .1
