@@ -8,5 +8,6 @@ OffsetOfKernelFile      equ 0h              ; KERNEL.BIN 被加载到的位置  
 BaseOfKernelFilePhyAddr equ BaseOfKernelFile * 10h 
 KernelEntryPointPhyAddr equ 030400h
 
-PageDirBase             equ     200000h
-PageTblBase             equ     201000h
+
+PageDirBase     equ 200000h ; 页目录开始地址: 2M
+PageTblBase     equ 201000h ; 页表开始地址:   2M + 4K

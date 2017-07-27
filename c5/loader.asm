@@ -27,6 +27,8 @@ SelectorVideo       equ     DESC_VISEO      - GDT + SA_RPL3
         BaseOfStack         equ     0100h
 
 
+
+
 start:
         mov ax,cs
         mov ds,ax
@@ -63,9 +65,9 @@ start:
         xor dl,dl
         int 13h
 
-    .search_in_root_dir_begin:
+    search_in_root_dir_begin:
         cmp word [wRootDirSizeForLoop],0
-        jz .no_kernel
+        jz no_kernel
         dec word [wRootDirSizeForLoop]
         mov ax,BaseOfKernelFile
         mov es,ax
@@ -78,39 +80,39 @@ start:
         mov di,OffsetOfKernelFile
         cld
         mov dx,10h
-    .search_kernel:
+    search_kernel:
         cmp dx,0
-        jz .next_sector
+        jz next_sector
         dec dx
         mov cx,11
-    .cmp_filename:
+    cmp_filename:
         cmp cx,0
-        jz .filename_found
+        jz filename_found
         dec cx
         lodsb                               ; ds:si -> al
         cmp al,byte [es:di]                 ; if al == es:di
-        jz .go_on
-        jmp .different
-    .go_on:
+        jz go_on
+        jmp different
+    go_on:
         inc di
-        jmp .cmp_filename
+        jmp cmp_filename
 
-    .different:
+    different:
         and di,0FFE0h
         add di,20h        
         mov si,KernelFileName
-        jmp .search_kernel
+        jmp search_kernel
 
-    .next_sector:
+    next_sector:
         add word [wSectorNo],1
-        jmp .search_in_root_dir_begin
+        jmp search_in_root_dir_begin
         
-    .no_kernel:
+    no_kernel:
         mov dh,2
         call DispStrRealMode
         jmp $                               ; 未找到 到此为止
     
-    .filename_found:
+    filename_found:
         mov ax,RootDirSectors
         and di,0FFF0h                       ; di -> 当前条目的开始
 
@@ -130,7 +132,7 @@ start:
         mov bx,OffsetOfKernelFile           ; bx <- OffsetOfKernelFile
         mov ax,cx                           ; ax <- Sector 号
 
-    .goon_loading_file:
+    goon_loading_file:
 
         ; show Loading...
         push ax
@@ -140,21 +142,21 @@ start:
         mov bl,0Fh
         int 10h
         pop bx
-        pop ax
+            pop ax
 
         mov cl,1
         call ReadSector
         pop ax                              ; 此 Sector 在FAT 中的序号
         call GetFATEntry
         cmp ax,0FFFh
-        jz .file_loaded
+        jz file_loaded
         push ax                             ; 保存此 Sector 在 FAT 中的序号
         mov dx,RootDirSectors
         add ax,dx
         add ax,DeltaSectorNo
         add bx,[BPB_BytePerSec]
-        jmp .goon_loading_file
-    .file_loaded:
+        jmp goon_loading_file
+    file_loaded:
         call KillMotor                      ; 关闭驱动马达
     
         mov dh,1                            ; "Ready."
@@ -182,7 +184,7 @@ start:
         ; 真正进入保护模式
         jmp dword SelectorFlatC:(BaseOfLoaderPhyAddr+PM_START) ;
 
-
+        ;jmp $
 
 ;=====================================================================
 ; 变量
@@ -196,7 +198,7 @@ dwKernelSize            dd  0
 ; 字符串
 KernelFileName          db  "KERNEL  BIN",0 ; kernel.bin 的文件名
 MessageLength           equ 9
-LoadMessage:            db  "Loading  "
+LoadMessage:            db  "[Loading]"
 Message1                db  "Ready.   "
 Message2                db  "No Kernel"
 Message3                db  "TEST     "
@@ -334,12 +336,12 @@ PM_START:
         call DispStr
         add esp,4
         
-        ; call DispMemInfo
+        call DispMemInfo
         call SetupPaging
 
-        ; mov ah,0Fh
-        ; mov al,'P'
-        ; mov [gs:((80 * 0 + 39) * 2)],ax
+        mov ah,0Fh
+        mov al,'P'
+        mov [gs:((80 * 0 + 39) * 2)],ax
 
         ; jmp $
         call InitKernel
@@ -604,7 +606,7 @@ InitKernel:
         mov esi,[BaseOfKernelFilePhyAddr + 1Ch]     ; esi <- pELFHdr->e_phoff
         add esi,BaseOfKernelFilePhyAddr
     .begin:
-        mov eax,[esi]
+        mov eax,[esi+0]
         cmp eax,0                           ; PT_NULL
         jz .no_action
         push dword [esi+010h]
@@ -631,12 +633,12 @@ ALIGN   32
 DATA:
 ; 实模式下使用
 ; 字符串
-_szMemChkTitle: db "BaseAddrL BaseAddrH LengthLow LengthHigh Type",0Ah,0
-_szRAMSize:     db "RAM size",0
-_szReturn:      db 0Ah,0
+_szMemChkTitle:     db "BaseAddrL BaseAddrH LengthLow LengthHigh Type",0Ah,0
+_szRAMSize:         db "RAM size:",0
+_szReturn:          db 0Ah,0
 ; 变量
-_dwMCRNumber:   dd 0
-_dwDispPos:     dd (80 * 6 + 0) * 2
+_dwMCRNumber:       dd 0
+_dwDispPos:         dd (80 * 6 + 0) * 2
 _dwMemSize:         dd  0
 ; Address Range Descriptor structure
 _ARDStruct:
@@ -653,7 +655,7 @@ szRAMSize               equ BaseOfLoaderPhyAddr + _szRAMSize
 szReturn                equ BaseOfLoaderPhyAddr + _szReturn       
 dwDispPos               equ BaseOfLoaderPhyAddr + _dwDispPos      
 dwMemSize               equ BaseOfLoaderPhyAddr + _dwMemSize      
-dwMCRNumber             equ BaseOfLoaderPhyAddr + _dwMemSize      
+dwMCRNumber             equ BaseOfLoaderPhyAddr + _dwMCRNumber      
 ARDStruct               equ BaseOfLoaderPhyAddr + _ARDStruct      
     dwBaseAddrLow       equ BaseOfLoaderPhyAddr + _dwBaseAddrLow  
     dwBaseAddrHige      equ BaseOfLoaderPhyAddr + _dwBaseAddrHige 
