@@ -7,12 +7,12 @@
 #include    "const.h"
 #include    "protect.h"
 
-public  void* memcpy(void* pDst,void* pSrc,int iSize);
+PUBLIC  void* memcpy(void* pDst,void* pSrc,int iSize);
 
-public u8   gdt_ptr[6]
-public DESCRIPTOR   gdr[GDT_SIZE]
+PUBLIC u8   gdt_ptr[6]
+PUBLIC DESCRIPTOR   gdr[GDT_SIZE]
 
-public void cstart(){
+PUBLIC void cstart(){
     disp_str("\n\n\n\n\n\n\n\n\n\n\"
             "--------\"catsrt\" begins------\n");
     memcpy(&gdt,(void*)(*((u32*)(&gdt_ptr[2]))),

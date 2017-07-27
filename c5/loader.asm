@@ -27,8 +27,6 @@ SelectorVideo       equ     DESC_VISEO      - GDT + SA_RPL3
         BaseOfStack         equ     0100h
 
 
-
-
 start:
         mov ax,cs
         mov ds,ax
