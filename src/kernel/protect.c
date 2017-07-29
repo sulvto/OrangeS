@@ -36,6 +36,7 @@ void hwint04();
 void hwint05();
 void hwint06();
 void hwint07();
+void hwint08();
 void hwint09();
 void hwint10();
 void hwint11();
