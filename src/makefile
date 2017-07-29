@@ -19,7 +19,7 @@ DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 # This Program
 ORANGESBOOT	  = boot/boot.bin boot/loader.bin
 ORANGESKERNEL = kernel.bin
-OBJS		  = kernel/kernel.o kernel/start.o lib/kliba.o lib/string.o
+OBJS		  = kernel/kernel.o kernel/start.o kernel/i8259.o kernel/protect.o kernel/global.o lib/klib.o lib/kliba.o lib/string.o 
 DASMOUTPUT	  = kernel.bin.asm
 
 .PHONY : everyting final image clean realclean disasm all buildimg
@@ -54,7 +54,20 @@ $(ORANGESKERNEL) : $(OBJS)
 kernel/kernel.o : kernel/kernel.asm
 		$(ASM) $(ASMKFLAGS) -o $@ $<
 
-kernel/start.o : kernel/start.c include/type.h include/const.h include/protect.h
+# gcc -M kernel/start.c -I include // 自动生成依赖关系
+kernel/start.o : kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/string.h
+		$(CC) -m32 $(CFLAGS) -o $@ $<
+
+kernel/i8259.o : kernel/i8259.c include/type.h include/const.h include/protect.h include/proto.h
+		$(CC) -m32 $(CFLAGS) -o $@ $<
+
+kernel/global.o : kernel/global.c
+		$(CC) -m32 $(CFLAGS) -o $@ $<
+
+kernel/protect.o : kernel/protect.c
+		$(CC) -m32 $(CFLAGS) -o $@ $<
+
+lib/klib.o : lib/klib.c
 		$(CC) -m32 $(CFLAGS) -o $@ $<
 
 lib/kliba.o : lib/kliba.asm
