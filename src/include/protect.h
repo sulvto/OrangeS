@@ -6,52 +6,52 @@
 #define _ORANGES_PROTECT_H_
 
 typedef struct s_descriptor {
-    u16 limit_low;          // Limit
-    u16 base_low;           // Base
-    u8 base_mid;           // Base
-    u8 attr1;              // P（1） DPL（2） DT（1） TYPE（4）
-    u8 limit_high_attr2;   // G（1） D（1） 0（1） AVL（1） LimitHigh(4)
+    u16     limit_low;          // Limit
+    u16     base_low;           // Base
+    u8      base_mid;           // Base
+    u8      attr1;              // P（1） DPL（2） DT（1） TYPE（4）
+    u8      limit_high_attr2;   // G（1） D（1） 0（1） AVL（1） LimitHigh(4)
     u8 base_high;          // Base
 } DESCRIPTOR;
 
 // 门描述符
 typedef struct s_gate {
-    u16 offset_low;          // Offset low
-    u16 selector;            // Selector
-    u8 dcount;               // 
-    u8 attr;                 // P（1） DPL（2） DT（1） TYPE（4）
-    u16 offset_high;          // Offset high
+    u16     offset_low;           // Offset low
+    u16     selector;             // Selector
+    u8      dcount;               // 
+    u8      attr;                 // P（1） DPL（2） DT（1） TYPE（4）
+    u16     offset_high;          // Offset high
 } GATE;
 
 
 typedef struct s_tss {
-    u32 backlink;
-    u32 esp0;
-    u32 ss0;
-    u32 esp1;
-    u32 ss1;
-    u32 esp2;
-    u32 ss2;
-    u32 cr3;
-    u32 eip;
-    u32 flags;
-    u32 eax;
-    u32 ecx;
-    u32 edx;
-    u32 ebx;
-    u32 esp;
-    u32 ebp;
-    u32 esi;
-    u32 edi;
-    u32 es;
-    u32 cs;
-    u32 ss;
-    u32 ds;
-    u32 fs;
-    u32 gs; 
-    u32 ldt;
-    u16 trap;
-    u16 iobase;
+    u32     backlink;
+    u32     esp0;
+    u32     ss0;
+    u32     esp1;
+    u32     ss1;
+    u32     esp2;
+    u32     ss2;
+    u32     cr3;
+    u32     eip;
+    u32     flags;
+    u32     eax;
+    u32     ecx;
+    u32     edx;
+    u32     ebx;
+    u32     esp;
+    u32     ebp;
+    u32     esi;
+    u32     edi;
+    u32     es;
+    u32     cs;
+    u32     ss;
+    u32     ds;
+    u32     fs;
+    u32     gs; 
+    u32     ldt;
+    u16     trap;
+    u16     iobase;
 }TSS;
 
 
@@ -137,6 +137,6 @@ typedef struct s_tss {
 
 // 宏
 // 线性地址 -> 物理地址
-#define vir2phys(seg_base, vir) (u32)(((u32)seg_base) + (u32)vir)
+#define vir2phys(seg_base, vir) (u32)(((u32)seg_base) + (u32)(vir))
 
 #endif

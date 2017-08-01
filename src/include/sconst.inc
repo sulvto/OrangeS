@@ -3,7 +3,8 @@ P_STACKBASE     equ 0
 GSREG           equ     P_STACKBASE      + 4
 FSREG           equ     GSREG            + 4
 ESREG           equ     FSREG            + 4
-EDIREG          equ     ESREG            + 4
+DSREG           equ     ESREG            + 4
+EDIREG          equ     DSREG            + 4
 ESIREG          equ     EDIREG           + 4
 EBPREG          equ     ESIREG           + 4
 KERNELESPREG    equ     EBPREG           + 4
@@ -18,7 +19,7 @@ EFLAGSREG       equ     CSREG            + 4
 ESPREG          equ     EFLAGSREG        + 4
 SSREG           equ     ESPREG           + 4
 P_STACKTOP      equ     SSREG            + 4
-P_LDT_SEL       equ     P_STACKBASE      
+P_LDT_SEL       equ     P_STACKTOP      
 P_LDT           equ     P_LDT_SEL        + 4   
 
 TSS3_S_SP0      equ     4
@@ -27,9 +28,3 @@ TSS3_S_SP0      equ     4
 SELECTOR_FLAT_C     equ     0x08
 SELECTOR_TSS        equ     0x20
 SELECTOR_KERNEL_CS  equ     SELECTOR_FLAT_C 
-
-
-
-
-
-

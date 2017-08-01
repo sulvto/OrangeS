@@ -35,7 +35,6 @@ PUBLIC int kernel_main() {
 
     p_proc_ready = proc_table;
 
-        disp_str("A");
     restart();
 
         disp_str("A");

@@ -16,12 +16,12 @@ extern p_proc_ready
 extern disp_pos
 extern tss
 
+bits 32
 [section .bss]
 StackSpace      resb    2 * 1024
 StackTop:       ; 栈顶        
 
 
-bits 32
 [section .text]
 
 global _start

@@ -196,7 +196,7 @@ PUBLIC void exception_handler(int vec_no, int err_code, int eip, int cs, int efl
                        "#SS Stack-Segment Fault",
                        "#GP General Protection",
                        "#PF Page Fault",
-                       "--  (Intel reserved. Do not use.)"
+                       "--  (Intel reserved. Do not use.)",
                                "#MF x87 FPU Floating-Point Error (Math Fault)",
                        "#AV Alignment Check",
                        "#MC Machine Check",
