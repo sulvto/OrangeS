@@ -50,7 +50,7 @@ memset:
         push edi
         push ecx
 
-        mov edi,[ebp + 8]   ; Desctination
+        mov edi,[ebp + 8]   ; Destination
         mov edx,[ebp + 12]  ; Char to be putted
         mov ecx,[ebp + 16]  ; Counter
     .1:

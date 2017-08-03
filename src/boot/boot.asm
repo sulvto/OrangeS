@@ -117,7 +117,7 @@ LABEL_GOON_LOADING_FILE:
         mov dx,RootDirSectors
         add ax,dx
         add ax,DeltaSectorNo
-        add bx,[BPB_BytePerSec]
+        add bx,[BPB_BytsPerSec]
         jmp LABEL_GOON_LOADING_FILE
 
 LABEL_FILE_LOADED:
@@ -129,7 +129,7 @@ LABEL_FILE_LOADED:
 
 wRootDirSizeForLoop dw RootDirSectors
 wSectorNo           dw 0                ; 要读的扇区号
-b0dd                db 0                ; 
+bOdd                db 0                ;
 
 LoaderFileName      db  "LOADER  BIN",0
 MessageLength       equ 9
@@ -187,17 +187,17 @@ GetFATEntry:
         sub ax,0100h
         mov es,ax
         pop ax
-        mov byte [b0dd],0
+        mov byte [bOdd],0
         mov bx,3
         mul bx
         mov bx,2
         div bx
         cmp dx,0
         jz LABEL_EVEN
-        mov byte [b0dd],1
+        mov byte [bOdd],1
 LABEL_EVEN:
         xor dx,dx
-        mov bx,[BPB_BytePerSec]
+        mov bx,[BPB_BytsPerSec]
         div bx
         push dx
         mov bx,0
@@ -208,7 +208,7 @@ LABEL_EVEN:
         pop dx
         add bx,dx
         mov ax,[es:bx]
-        cmp byte [b0dd],1
+        cmp byte [bOdd],1
         jnz LABEL_EVEN_2
         shr ax,4
 LABEL_EVEN_2:

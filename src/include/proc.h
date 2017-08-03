@@ -24,12 +24,13 @@ typedef struct s_stackframe {
 }STACK_FRAME;
 
 typedef struct s_proc {
-    STACK_FRAME regs;           // process registers saved in stack frame
+    STACK_FRAME     regs;            // process registers saved in stack frame
 
-    u16 ldt_sel;                // local descriptors for code and data
-    DESCRIPTOR ldts[LDT_SIZE];  // process id passed in from MM
-    u32 pid;
-    char p_name[16];            // name of the process
+    u16             ldt_sel;         // local descriptors for code and data */
+    DESCRIPTOR          ldts[LDT_SIZE];  // process id passed in from MM
+    
+    u32             pid;
+    char            p_name[16];      // name of the process
 }PROCESS;
 
 // Number of tasks

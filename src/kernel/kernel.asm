@@ -15,17 +15,18 @@ extern delay
 extern gdt_ptr
 extern idt_ptr
 extern p_proc_ready
-extern disp_pos
 extern tss
+extern disp_pos
 extern k_reenter
 
-bit 32
+bits 32
 [section .bss]
 StackSpace      resb    2 * 1024
-StackTop:       ; 栈顶        
-clock_int_msg   db  "^",0
+StackTop:       ; 栈顶
 
 [section .text]
+clock_int_msg   db  "^",0
+test_msg        db  "T"
 
 global _start
 
@@ -78,12 +79,11 @@ _start:
         lidt [idt_ptr]
 
         jmp SELECTOR_KERNEL_CS:csinit
-
 csinit:
         xor eax,eax
         mov ax,SELECTOR_TSS
         ltr ax
-    
+
         jmp kernel_main
 
 ; 中断和异常 --硬件中断
@@ -291,12 +291,23 @@ restart:
         lldt    [esp+P_LDT_SEL]
         lea eax,[esp+P_STACKTOP]
         mov dword [tss + TSS3_S_SP0],eax
-        
+push test_msg
+call disp_str
+
         pop gs
         pop fs
+push test_msg
+call disp_str             
+
+push test_msg
+call disp_str             
         pop es
+push test_msg
+call disp_str             
         pop ds
+push test_msg
+call disp_str             
+
         popad
-        
         add esp,4
         iretd

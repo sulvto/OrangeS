@@ -78,6 +78,29 @@ typedef struct s_tss {
 // 每个 LDT 中的描述符个数
 #define LDT_SIZE        2
 
+// 描述符类型值
+#define DA_32               0x4000 // 32 位段
+#define DA_LIMIT_4K         0x8000 // 段界限粒度为 4K 字节
+#define DA_DPL0             0x00   // DPL = 0
+#define DA_DPL1             0x20   // DPL = 1
+#define DA_DPL2             0x40   // DPL = 2
+#define DA_DPL3             0x60   // DPL = 3
+// 存储段描述符类型值
+#define DA_DR               0x90
+#define DA_DRW              0x92
+#define DA_DRWA             0x93
+#define DA_C                0x98
+#define DA_CR               0x9A
+#define DA_CCO              0x9C
+#define DA_CCOR             0x9E
+// 系统段描述符类型值
+#define DA_LDT              0x82
+#define DA_TaskGate         0x85
+#define DA_386TSS           0x89
+#define DA_386CGate         0x8C
+#define DA_386IGate         0x8E
+#define DA_386TGate         0x8F
+
 // 选择子类型值
 #define SA_RPL_MASK     0xFFFC
 #define SA_RPL0         0
@@ -88,29 +111,6 @@ typedef struct s_tss {
 #define SA_TI_MASK      0xFFFB
 #define SA_TIG          0
 #define SA_TIL          4
-
-// 描述符类型值
-#define DA_32               0x4000 // 32 位段
-#define DA_LIMIT_4K         0x8000 // 段界限粒度为 4K 字节
-#define DA_DPL0             0x00   // DPL = 0
-#define DA_DPL1             0x20   // DPL = 1
-#define DA_DPL2             0x40   // DPL = 2
-#define DA_DPL3             0x60   // DPL = 3
-// 存储段描述符类型值
-#define DA_DR               0x90   
-#define DA_DRW              0x92
-#define DA_DRWA             0x93   
-#define DA_C                0x98
-#define DA_CR               0x9A
-#define DA_CC0              0x9C
-#define DA_CC0R             0x9E
-// 系统段描述符类型值
-#define DA_LDT              0x82
-#define DA_TaskGate         0x85
-#define DA_386TSS           0x89
-#define DA_386CGate         0x8C
-#define DA_386IGate         0x8E
-#define DA_386TGate         0x8F
 
 // 中断向量
 #define INT_VECTOR_DIVIDE       0x0

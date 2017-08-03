@@ -35,7 +35,7 @@ PUBLIC int kernel_main() {
 
     k_reenter = -1;    
 
-    p_proc_ready = proc_table;
+    p_proc_ready  = proc_table;
 
     restart();
 
@@ -48,6 +48,17 @@ void TestA() {
         disp_str("A");
     while(1) {
         disp_str("A");
+        disp_int(i++);
+        disp_str(".");
+        delay(1);
+    }
+}
+
+void TestB() {
+    int i=0X1000;
+        disp_str("A");
+    while(1) {
+        disp_str("B");
         disp_int(i++);
         disp_str(".");
         delay(1);

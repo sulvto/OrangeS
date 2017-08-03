@@ -152,7 +152,7 @@ start:
         mov dx,RootDirSectors
         add ax,dx
         add ax,DeltaSectorNo
-        add bx,[BPB_BytePerSec]
+        add bx,[BPB_BytsPerSec]
         jmp goon_loading_file
     file_loaded:
         call KillMotor                      ; 关闭驱动马达
@@ -189,7 +189,7 @@ start:
 
 wRootDirSizeForLoop     dw  RootDirSectors  ; root directory 占用的扇区数
 wSectorNo               dw  0
-b0dd                    db  0
+bOdd                    db  0
 dwKernelSize            dd  0
 
 ;=====================================================================
@@ -210,7 +210,7 @@ Message3                db  "TEST     "
 DispStrRealMode:
         mov ax,MessageLength
         mul dh
-        add ax,LoadMessage  
+        add ax,LoadMessage
         mov bp,ax
         mov ax,ds
         mov es,ax
@@ -271,17 +271,17 @@ GetFATEntry:
         sub ax,0100h
         mov es,ax
         pop ax
-        mov byte [b0dd],0
+        mov byte [bOdd],0
         mov bx,3
         mul bx
         mov bx,2
         div bx
         cmp dx,0
         jz .even
-        mov byte [b0dd],1
+        mov byte [bOdd],1
     .even:
         xor dx,dx
-        mov bx,[BPB_BytePerSec]
+        mov bx,[BPB_BytsPerSec]
         div bx
         
         push dx
@@ -292,7 +292,7 @@ GetFATEntry:
         pop dx
         add bx,dx
         mov ax,[es:bx]
-        cmp byte [b0dd],1
+        cmp byte [bOdd],1
         jnz .even2
         shr ax,4
     .even2:
@@ -641,9 +641,9 @@ _dwMemSize:         dd  0
 ; Address Range Descriptor structure
 _ARDStruct:
     _dwBaseAddrLow: dd  0
-    _dwBaseAddrHige:dd  0
+    _dwBaseAddrHigh:dd  0
     _dwLengthLow:   dd  0
-    _dwLengthHige:  dd  0
+    _dwLengthHigh:  dd  0
     _dwType:        dd  0
 _MemChkBuf:    times 256 db 0
 
@@ -656,13 +656,14 @@ dwMemSize               equ BaseOfLoaderPhyAddr + _dwMemSize
 dwMCRNumber             equ BaseOfLoaderPhyAddr + _dwMCRNumber      
 ARDStruct               equ BaseOfLoaderPhyAddr + _ARDStruct      
     dwBaseAddrLow       equ BaseOfLoaderPhyAddr + _dwBaseAddrLow  
-    dwBaseAddrHige      equ BaseOfLoaderPhyAddr + _dwBaseAddrHige 
+    dwBaseAddrHigh      equ BaseOfLoaderPhyAddr + _dwBaseAddrHigh
     dwLengthLow         equ BaseOfLoaderPhyAddr + _dwLengthLow    
-    dwLengthHige        equ BaseOfLoaderPhyAddr + _dwLengthHige   
+    dwLengthHigh        equ BaseOfLoaderPhyAddr + _dwLengthHigh
     dwType              equ BaseOfLoaderPhyAddr + _dwType         
 
 MemChkBuf               equ BaseOfLoaderPhyAddr + _MemChkBuf     
 
+
 ; 堆栈
-StackSpace: times 1024 db  0
+StackSpace: times 1000h db  0
 TopOfStack  equ BaseOfLoaderPhyAddr + $

@@ -1,7 +1,7 @@
 
 ; FAT12 磁盘的头
 BS_OEMName      DB 'ForrestY'
-BPB_BytePerSec  DW 512          ; 扇区字节数
+BPB_BytsPerSec  DW 512          ; 扇区字节数
 BPB_SecPerClus  DB 1            ; 族扇区数
 BPB_RevdSecCnt  DW 1            ; Boot 记录占用扇区数
 BPB_NumFATs     DB 2            ; 2 FAT 表

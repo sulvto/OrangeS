@@ -8,11 +8,10 @@
 #include    "proc.h"
 #include    "global.h"
 
-PRIVATE void init_idt_desc(unsigned char vector, u8 desc_type,
-                           int_handler handler, unsigned char privilege);
+PRIVATE void init_idt_desc(unsigned char vector, u8 desc_type, int_handler handler, unsigned char privilege);
+PRIVATE void init_descriptor(DESCRIPTOR * p_desc, u32 base, u32 limit, u16 attribute);
 
-PRIVATE void init_descriptor(DESCRIPTOR * p_desc, u32 base,
-                           u32 limit, u16 attribute);
+
 // 中断处理函数
 void divide_error();
 void single_step_exception();
@@ -150,6 +149,7 @@ PRIVATE void init_idt_desc(unsigned char vector, u8 desc_type,
     p_gate->offset_high = (base >> 16) & 0xFFFF;
 }
 
+
 /**
  * 根据段名取绝对地址
  *
@@ -198,7 +198,7 @@ PUBLIC void exception_handler(int vec_no, int err_code, int eip, int cs, int efl
                        "#PF Page Fault",
                        "--  (Intel reserved. Do not use.)",
                                "#MF x87 FPU Floating-Point Error (Math Fault)",
-                       "#AV Alignment Check",
+                       "#AC Alignment Check",
                        "#MC Machine Check",
                        "#XF SIMD Floating-Point Exception"
     };
@@ -218,7 +218,7 @@ PUBLIC void exception_handler(int vec_no, int err_code, int eip, int cs, int efl
     disp_color_str("EIP:", text_color);
     disp_int(eip);
 
-    if (err_code != 0XFFFFFFFF) {
+    if (err_code != 0xFFFFFFFF) {
         disp_color_str("Error code:", text_color);
         disp_int(err_code);
     }

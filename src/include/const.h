@@ -10,6 +10,10 @@
 
 #define EXTERN extern
 
+/* Boolean */
+#define	TRUE	1
+#define	FALSE	0
+
 /*
  * GDT 和 IDT 中描述符的个数
  */
@@ -25,7 +29,6 @@
 #define RPL_KRNL    SA_RPL0
 #define RPL_TASK    SA_RPL1
 #define RPL_USER    SA_RPL3
-
 
 // 8259A
 #define  INT_M_CTL      0x20

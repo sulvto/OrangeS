@@ -13,7 +13,7 @@
 
 PUBLIC void cstart() {
     disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
-                     "--------\"catsrt\" begins------\n");
+                     "--------\"cstart\" begins------\n");
     memcpy(&gdt,
            (void *) (*((u32 * )(&gdt_ptr[2]))),
            *((u16 * )(&gdt_ptr[0])) + 1);
@@ -32,5 +32,5 @@ PUBLIC void cstart() {
 
     init_prot();
 
-    disp_str("--------\"catsrt\" ends------\n");
+    disp_str("--------\"cstart\" ends------\n");
 }
