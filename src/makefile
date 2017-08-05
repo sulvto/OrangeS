@@ -12,14 +12,14 @@ CC			= gcc
 LD			= ld
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -fno-builtin
+CFLAGS		= -I include/ -c -fno-builtin  -m32
 LDFLAGS		= -m elf_i386 -s -Ttext $(ENTRYPOINT)
 DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
 # This Program
 ORANGESBOOT	  = boot/boot.bin boot/loader.bin
 ORANGESKERNEL = kernel.bin
-OBJS		  = kernel/kernel.o kernel/start.o kernel/main.o kernel/i8259.o kernel/global.o kernel/protect.o lib/kliba.o lib/klib.o lib/string.o
+OBJS		  = kernel/kernel.o kernel/start.o kernel/main.o kernel/clock.o kernel/i8259.o kernel/global.o kernel/protect.o lib/kliba.o lib/klib.o lib/string.o
 DASMOUTPUT	  = kernel.bin.asm
 
 .PHONY : everything final image clean realclean disasm all buildimg
@@ -57,22 +57,25 @@ kernel/kernel.o : kernel/kernel.asm include/sconst.inc
 # gcc -M kernel/start.c -I include // 自动生成依赖关系
 kernel/start.o :kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/string.h \
  include/global.h 
-		$(CC) -m32 $(CFLAGS) -o $@ $<
+		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/main.o : kernel/main.c include/type.h include/const.h include/protect.h include/string.h include/proc.h include/proto.h include/global.h
-		$(CC) -m32 $(CFLAGS) -o $@ $<
+		$(CC) $(CFLAGS) -o $@ $<
+
+kernel/clock.o: kernel/clock.c
+		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/i8259.o : kernel/i8259.c include/type.h include/const.h include/protect.h include/proto.h
-		$(CC) -m32 $(CFLAGS) -o $@ $<
+		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/global.o : kernel/global.c include/type.h include/const.h include/protect.h include/proc.h include/global.h include/proto.h
-		$(CC) -m32 $(CFLAGS) -o $@ $<
+		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/protect.o : kernel/protect.c include/type.h include/const.h include/protect.h include/proc.h include/proto.h include/global.h
-		$(CC) -m32 $(CFLAGS) -o $@ $<
+		$(CC) $(CFLAGS) -o $@ $<
 
 lib/klib.o : lib/klib.c include/type.h include/const.h include/protect.h include/string.h include/proc.h include/proto.h include/global.h
-		$(CC) -m32 $(CFLAGS) -o $@ $<
+		$(CC) $(CFLAGS) -o $@ $<
 
 lib/kliba.o : lib/kliba.asm
 		$(ASM) $(ASMKFLAGS) -o $@ $<

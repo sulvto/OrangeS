@@ -4,6 +4,7 @@
 ; 导出函数
 global memcpy
 global memset
+global strcpy
 
 ; 内存拷贝
 memcpy:
@@ -69,4 +70,29 @@ memset:
         mov esp,ebp
         pop ebp
         
+        ret
+
+;
+; void strcpy(char* p_dst, char* p_src);
+;
+strcpy:
+        push ebp
+        mov ebp,esp
+        
+        mov esi,[ebp + 12]  ; src
+        mov edi,[ebp + 8]   ; dst
+
+    .1:
+        mov al,[esi]
+        inc esi
+
+        mov byte [esi],al
+        inc edi
+
+        cmp al,0
+        jnz .1
+    
+        mov eax,[ebp + 8]
+
+        pop ebp
         ret

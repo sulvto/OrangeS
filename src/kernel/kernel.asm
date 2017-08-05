@@ -8,6 +8,7 @@ extern cstart
 extern kernel_main
 extern exception_handler
 extern spurious_irq
+extern clock_handler
 extern disp_str
 extern delay
 
@@ -121,19 +122,14 @@ hwint00:                ; Interrupt routine for irq 0 (the clock).
         mov esp,StackTop
 
         sti
-
-        push clock_int_msg
-        call disp_str
+        push 0
+        call clock_handler
         add esp,4
-
-        ; push 1
-        ; call delay
-        ; add esp,4
-
         cli
+
     
         mov esp,[p_proc_ready]
-
+        lldt    [esp + P_LDT_SEL]
         lea eax,[esp + P_STACKTOP]
         mov dword [tss + TSS3_S_SP0],eax
 
@@ -291,23 +287,11 @@ restart:
         lldt    [esp+P_LDT_SEL]
         lea eax,[esp+P_STACKTOP]
         mov dword [tss + TSS3_S_SP0],eax
-push test_msg
-call disp_str
 
         pop gs
         pop fs
-push test_msg
-call disp_str             
-
-push test_msg
-call disp_str             
         pop es
-push test_msg
-call disp_str             
         pop ds
-push test_msg
-call disp_str             
-
         popad
         add esp,4
         iretd
