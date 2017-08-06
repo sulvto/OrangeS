@@ -20,13 +20,15 @@ extern disp_pos
 extern k_reenter
 
 bits 32
+[section .data]
+clock_int_msg   db  "^",0
+test_msg        db  "T"
+
 [section .bss]
 StackSpace      resb    2 * 1024
 StackTop:       ; 栈顶
 
 [section .text]
-clock_int_msg   db  "^",0
-test_msg        db  "T"
 
 global _start
 
@@ -291,22 +293,12 @@ restart:
         lldt    [esp+P_LDT_SEL]
         lea eax,[esp+P_STACKTOP]
         mov dword [tss + TSS3_S_SP0],eax
-push test_msg
-call disp_str
 
         pop gs
         pop fs
-push test_msg
-call disp_str             
 
-push test_msg
-call disp_str             
         pop es
-push test_msg
-call disp_str             
         pop ds
-push test_msg
-call disp_str             
 
         popad
         add esp,4
