@@ -86,7 +86,7 @@ strcpy:
         mov al,[esi]
         inc esi
 
-        mov byte [esi],al
+        mov byte [edi],al
         inc edi
 
         cmp al,0
