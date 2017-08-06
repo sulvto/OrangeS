@@ -1,6 +1,6 @@
 ;
 P_STACKBASE     equ 0
-GSREG           equ     P_STACKBASE      + 4
+GSREG           equ     P_STACKBASE      
 FSREG           equ     GSREG            + 4
 ESREG           equ     FSREG            + 4
 DSREG           equ     ESREG            + 4

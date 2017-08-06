@@ -21,13 +21,15 @@ extern disp_pos
 extern k_reenter
 
 bits 32
+[section .data]
+clock_int_msg   db  "^",0
+test_msg        db  "T"
+
 [section .bss]
 StackSpace      resb    2 * 1024
 StackTop:       ; 栈顶
 
 [section .text]
-clock_int_msg   db  "^",0
-test_msg        db  "T"
 
 global _start
 
