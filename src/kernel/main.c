@@ -63,7 +63,6 @@ PUBLIC int kernel_main() {
 
 void TestA() {
     int i=0;
-        disp_str("A");
     while(1) {
         disp_str("A");
         disp_int(i++);
@@ -74,9 +73,18 @@ void TestA() {
 
 void TestB() {
     int i=0X1000;
-        disp_str("A");
     while(1) {
         disp_str("B");
+        disp_int(i++);
+        disp_str(".");
+        delay(1);
+    }
+}
+
+void TestC() {
+    int i=0X2000;
+    while(1) {
+        disp_str("C");
         disp_int(i++);
         disp_str(".");
         delay(1);
