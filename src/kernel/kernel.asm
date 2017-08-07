@@ -11,6 +11,7 @@ extern spurious_irq
 extern clock_handler
 extern disp_str
 extern delay
+extern irq_table
 
 ; 导入全局变量
 extern gdt_ptr
@@ -92,59 +93,36 @@ csinit:
 ; 中断和异常 --硬件中断
 ; --------------------------
 %macro hwint_master 1
-        push %1
-        call spurious_irq
-        add esp,4
-        hlt
-%endmacro
-; --------------------------
-ALIGN 16
-hwint00:                ; Interrupt routine for irq 0 (the clock).
-        sub esp,4
-        pushad
-        push ds
-        push es
-        push fs
-        push gs
-
-        mov dx,ss
-        mov ds,dx
-        mov es,dx
-
-    
-        inc byte [gs:0]
-
+        call save
+        ; 屏蔽当前中断
+        in al,INT_M_CTLMASK
+        or al,(1 << %1)
+        out INT_M_CTLMASK,al
+        
+        ; 置EOI
         mov al,EOI
         out INT_M_CTL,al
-
-        inc dword [k_reenter]
-        cmp dword [k_reenter],0
-        jne .re_enter
-
-        mov esp,StackTop
-
         sti
-        push 0
-        call clock_handler
-        add esp,4
+
+        ; 中断处理程序
+        push %1
+        call [irq_table + 4 * %1]
+        pop ecx
+
         cli
 
-    
-        mov esp,[p_proc_ready]
-        lldt    [esp + P_LDT_SEL]
-        lea eax,[esp + P_STACKTOP]
-        mov dword [tss + TSS3_S_SP0],eax
+        ; 恢复接受当前中断
+        in al，INT_M_CTLMASK
+        and al,~(1 << %1)
+        out INT_M_CTLMASK,al
+        
+        ret
+%endmacro
+; --------------------------
 
-    .re_enter:
-        dec dword [k_reenter]
-        pop gs
-        pop fs
-        pop es
-        pop ds
-        popad
-        add esp,4
-
-        iretd
+ALIGN 16
+hwint00:                ; Interrupt routine for irq 0 (the clock).
+        hwint_master    0
 
 ALIGN 16
 hwint01:                ; Interrupt routine for irq 1 (keyboard).
@@ -280,6 +258,35 @@ exception:
         add esp,4*2
         hlt
 
+
+save:
+        pushad
+        push ds
+        push es
+        push fs
+        push gs
+
+        mov dx,ss
+        mov ds,dx
+        mov es,dx
+
+        mov eax,esp    
+
+        inc dword [k_reenter]
+        cmp dword [k_reenter],0
+        ; jne .re_enter
+        jne .1
+
+        mov esp,StackTop
+        
+        push restart
+        jmp [eax + RETADR - P_STACKBASE]
+    .1:
+        push restart_rennter
+        jmp [eax + RETADR - P_STACKBASE]
+
+
+
 ;---------------------------------------------------------------------
 ;
 ; restart
@@ -289,7 +296,8 @@ restart:
         lldt    [esp+P_LDT_SEL]
         lea eax,[esp+P_STACKTOP]
         mov dword [tss + TSS3_S_SP0],eax
-
+restart_rennter:
+        dec dword [k_reenter]
         pop gs
         pop fs
         pop es

@@ -18,7 +18,16 @@ PUBLIC void init_8259A() {
     out_byte(INT_S_CTLMASK, 0x1);     // Slave 8259, ICW4.
     out_byte(INT_M_CTLMASK, 0xFE);    // Master 8259, OCW1.
     out_byte(INT_S_CTLMASK, 0xFF);    // Slave 8259, OCW1.
+
+    for(int i=0; i<NR_IRQ; i++) {
+        irq_table[i] = spurious_irq;
+    }
 };
+
+PUBLIC void put_irq_spurious(int irq,irq_handler handler) {
+    disable_irq(irq);
+    irq_table[irq] = handler;
+}
 
 PUBLIC void spurious_irq(int irq) {
     disp_str("spurious_irq: ");
