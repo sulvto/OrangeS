@@ -92,7 +92,7 @@ csinit:
 
 ; 中断和异常 --硬件中断
 ; --------------------------
-%macro hwint_master 1
+%macro  hwint_master     1
         call save
         ; 屏蔽当前中断
         in al,INT_M_CTLMASK
@@ -112,7 +112,7 @@ csinit:
         cli
 
         ; 恢复接受当前中断
-        in al，INT_M_CTLMASK
+        in al,INT_M_CTLMASK
         and al,~(1 << %1)
         out INT_M_CTLMASK,al
         

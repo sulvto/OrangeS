@@ -36,6 +36,6 @@
 #define  INT_S_CTL      0xA0
 #define  INT_S_CTLMASK  0xA1
 
-#define  NR_IRQ  16
-
+#define  NR_IRQ     16
+#define  CLOCK_IRQ  0
 #endif
