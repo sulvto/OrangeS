@@ -56,6 +56,12 @@ PUBLIC int kernel_main() {
 
     p_proc_ready  = proc_table;
 
+    // 初始化 8253 PIT
+    out_byte(TIMER_MODE,RATE_GENERATOR);
+    out_byte(TIMER0,(u8)(TIMER_FREQ/HZ));
+    out_byte(TIMER0,(u8)((TIMER_FREQ/HZ) >> 8));
+
+
     put_irq_handler(CLOCK_IRQ,clock_handler);
     enable_irq(CLOCK_IRQ);
 
@@ -70,7 +76,7 @@ void TestA() {
         disp_str("A");
         disp_int(get_ticks());
         disp_str(".");
-        delay(1);
+        milli_delay(1000);
     }
 }
 
@@ -80,7 +86,7 @@ void TestB() {
         disp_str("B");
         disp_int(i++);
         disp_str(".");
-        delay(1);
+        milli_delay(1000);
     }
 }
 
@@ -90,6 +96,6 @@ void TestC() {
         disp_str("C");
         disp_int(i++);
         disp_str(".");
-        delay(1);
+        milli_delay(1000);
     }
 }
