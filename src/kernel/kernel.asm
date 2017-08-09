@@ -20,6 +20,7 @@ extern p_proc_ready
 extern tss
 extern disp_pos
 extern k_reenter
+extern sys_call_table
 
 bits 32
 [section .data]
@@ -35,6 +36,8 @@ StackTop:       ; 栈顶
 global _start
 
 global restart
+
+global sys_call
 
 global divide_error
 global single_step_exception
@@ -270,7 +273,7 @@ save:
         mov ds,dx
         mov es,dx
 
-        mov eax,esp    
+        mov esi,esp    
 
         inc dword [k_reenter]
         cmp dword [k_reenter],0
@@ -280,10 +283,10 @@ save:
         mov esp,StackTop
         
         push restart
-        jmp [eax + RETADR - P_STACKBASE]
+        jmp [esi + RETADR - P_STACKBASE]
     .1:
         push restart_rennter
-        jmp [eax + RETADR - P_STACKBASE]
+        jmp [esi + RETADR - P_STACKBASE]
 
 
 
@@ -305,3 +308,17 @@ restart_rennter:
         popad
         add esp,4
         iretd
+
+;----------------------------------------------------------------------
+
+sys_call:
+        call save
+
+        sti
+
+        call [sys_call_table + eax * 4]
+        mov [esi + EAXREG - P_STACKBASE],eax
+
+        cli
+
+        ret

@@ -15,4 +15,6 @@ typedef void (*task_f) ();
 
 typedef void (*irq_handler) (int irq);
 
+typedef void* system_call;
+
 #endif

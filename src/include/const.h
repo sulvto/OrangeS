@@ -38,4 +38,7 @@
 
 #define  NR_IRQ     16
 #define  CLOCK_IRQ  0
+
+#define NR_SYS_CALL 1
+
 #endif

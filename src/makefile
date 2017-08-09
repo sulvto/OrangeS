@@ -19,7 +19,7 @@ DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 # This Program
 ORANGESBOOT	  = boot/boot.bin boot/loader.bin
 ORANGESKERNEL = kernel.bin
-OBJS		  = kernel/kernel.o kernel/start.o kernel/main.o kernel/clock.o kernel/i8259.o kernel/global.o kernel/protect.o lib/kliba.o lib/klib.o lib/string.o
+OBJS		  = kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o kernel/clock.o kernel/i8259.o kernel/global.o kernel/protect.o kernel/proc.o lib/kliba.o lib/klib.o lib/string.o
 DASMOUTPUT	  = kernel.bin.asm
 
 .PHONY : everything final image clean realclean disasm all buildimg
@@ -54,6 +54,9 @@ $(ORANGESKERNEL) : $(OBJS)
 kernel/kernel.o : kernel/kernel.asm include/sconst.inc
 		$(ASM) $(ASMKFLAGS) -o $@ $<
 
+kernel/syscall.o : kernel/syscall.asm include/sconst.inc
+		$(ASM) $(ASMKFLAGS) -o $@ $<
+
 # gcc -M kernel/start.c -I include // 自动生成依赖关系
 kernel/start.o :kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/string.h \
  include/global.h 
@@ -63,6 +66,9 @@ kernel/main.o : kernel/main.c include/type.h include/const.h include/protect.h i
 		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/clock.o: kernel/clock.c
+		$(CC) $(CFLAGS) -o $@ $<
+
+kernel/proc.0: kernel/proc.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/i8259.o : kernel/i8259.c include/type.h include/const.h include/protect.h include/proto.h

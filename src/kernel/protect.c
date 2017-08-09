@@ -117,6 +117,9 @@ PUBLIC void init_prot() {
 
     init_idt_desc(INT_VECTOR_IRQ8 + 7, DA_386IGate, hwint15, PRIVILEGE_KRNL);
 
+
+    init_idt_desc(INT_VECTOR_SYS_CALL, DA_386IGate, sys_call, PRIVILEGE_USER);
+
     // 填充 GDT 中TSS描述符
     memset(&tss,0,sizeof(tss));
     tss.ss0 = SELECTOR_KERNEL_DS;
