@@ -28,7 +28,10 @@ typedef struct s_proc {
 
     u16             ldt_sel;         // local descriptors for code and data */
     DESCRIPTOR          ldts[LDT_SIZE];  // process id passed in from MM
-    
+
+    int             ticks;
+    int             priority;
+
     u32             pid;
     char            p_name[16];      // name of the process
 }PROCESS;
