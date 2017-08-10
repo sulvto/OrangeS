@@ -63,14 +63,9 @@ PUBLIC int kernel_main() {
 
     p_proc_ready  = proc_table;
 
-    // 初始化 8253 PIT
-    out_byte(TIMER_MODE,RATE_GENERATOR);
-    out_byte(TIMER0,(u8)(TIMER_FREQ/HZ));
-    out_byte(TIMER0,(u8)((TIMER_FREQ/HZ) >> 8));
+    init_clock(); 
 
-
-    put_irq_handler(CLOCK_IRQ,clock_handler);
-    enable_irq(CLOCK_IRQ);
+    init_keyboard();    
 
     restart();
 
