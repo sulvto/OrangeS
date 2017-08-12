@@ -10,6 +10,9 @@ global out_byte
 global in_byte
 global enable_irq
 global disable_irq
+global disable_int
+global enable_int
+
 
 ; 显示一个字符串
 disp_str:
@@ -157,4 +160,19 @@ enable_8:
         and al,ah
         out INT_S_CTLMASK,al
         popf
+        ret
+
+
+;-----------------------------------------------------------------
+; void disable_int();
+;
+disable_int:
+        cli
+        ret
+
+;-----------------------------------------------------------------
+; void enable_int();
+;
+enable_int:
+        sti
         ret

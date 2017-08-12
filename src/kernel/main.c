@@ -15,12 +15,12 @@
 
 PUBLIC int kernel_main() {
     disp_str("------------------\"kernel_main\" begins--------------------\n");
-   
-    TASK*       p_task          = task_table;     
+
+    TASK*       p_task          = task_table;
     PROCESS*    p_proc          = proc_table;
     char*       p_task_stack    = task_stack + STACK_SIZE_TOTAL;
     u16         selector_ldt    = SELECTOR_LDT_FIRST;
-    for(int i=0; i<NR_TASKS; i++) {
+    for (int i=0; i<NR_TASKS; i++) {
         strcpy(p_proc->p_name,p_task->name);
         p_proc->pid = i;
         p_proc->ldt_sel = selector_ldt;
@@ -30,7 +30,7 @@ PUBLIC int kernel_main() {
         p_proc->ldts[0].attr1 = DA_C | PRIVILEGE_TASK << 5;  // change the DPL
         memcpy(&p_proc->ldts[1],&gdt[SELECTOR_KERNEL_DS >> 3],sizeof(DESCRIPTOR));
         p_proc->ldts[1].attr1 = DA_DRW | PRIVILEGE_TASK << 5;  // change the DPL
-        
+
         //  SA_RPL_MASK   0xFFFC      11111111 11111100
         //  SA_TI_MASK    0xFFFB      11111111 11111011
         //  SA_TIL        4           00000000 00000100
@@ -51,21 +51,21 @@ PUBLIC int kernel_main() {
         p_task++;
         selector_ldt += 1<<3;
     }
-    
-    
+
+
 
     proc_table[0].ticks = proc_table[0].priority = 15;
     proc_table[1].ticks = proc_table[1].priority = 5;
     proc_table[2].ticks = proc_table[2].priority = 3;
 
-    k_reenter = 0;    
+    k_reenter = 0;
     ticks = 0;
 
     p_proc_ready  = proc_table;
 
-    init_clock(); 
+    init_clock();
 
-    init_keyboard();    
+    init_keyboard();
 
     restart();
 
@@ -74,8 +74,8 @@ PUBLIC int kernel_main() {
 
 void TestA() {
     while(1) {
-        
-        disp_str("A.");
+
+//        disp_str("A.");
         milli_delay(10);
     }
 }
@@ -83,7 +83,7 @@ void TestA() {
 void TestB() {
     int i=0X1000;
     while(1) {
-        disp_str("B.");
+//        disp_str("B.");
         milli_delay(10);
     }
 }
@@ -91,7 +91,7 @@ void TestB() {
 void TestC() {
     int i=0X2000;
     while(1) {
-        disp_str("C.");
+//        disp_str("C.");
         milli_delay(10);
     }
 }

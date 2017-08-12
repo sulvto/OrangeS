@@ -30,6 +30,13 @@ PUBLIC void spurious_irq(int irq);
 // clock.c
 PUBLIC void clock_handler(int irq);
 
+// keyboard.c
+PUBLIC void keyboard();
+
+// tty.c
+PUBLIC void task_tty();
+
+
 // proc.c
 PUBLIC int sys_get_ticks();
 

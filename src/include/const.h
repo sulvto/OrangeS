@@ -44,10 +44,14 @@
 #define  TIMER_FREQ     1193182L
 #define  HZ             100
 
+// AT keyboard
+// 8042 ports
+#define  KB_DATA    0x60
+#define  KB_CMD     0x64
 
 #define  NR_IRQ     16
 #define  CLOCK_IRQ  0
-
+#define  KEYBOARD_IRQ   1
 
 #define NR_SYS_CALL 1
 
