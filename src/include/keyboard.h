@@ -11,6 +11,15 @@
 
 #define FLAG_BREAK      0x0080  // Break Code
 #define FLAG_EXT        0x0100  // Normal function keys
+#define FLAG_SHIFT_L    0x0200  // Shift key
+#define FLAG_SHIFT_R    0x0400  // Shift key
+#define FLAG_CTRL_L     0x0800  // Control key
+#define FLAG_CTRL_R     0x1000  // Control key
+#define FLAG_ALT_L      0x2000  // Alternate key
+#define FLAG_ALT_R      0x4000  // Alternate key
+#define FLAG_PAD        0x8000  // Keys in num pad
+
+#define MASK_RAW        0x01FF  // 
 
 /* Special keys */
 #define ESC		(0x01 + FLAG_EXT)	    // Esc
