@@ -2,11 +2,14 @@
 // Created by sulvto on 17-7-29.
 //
 #include "type.h"
-#include    "const.h"
-#include    "protect.h"
-#include    "proto.h"
-#include    "proc.h"
-#include    "global.h"
+#include "const.h"
+#include "protect.h"
+#include "tty.h"
+#include "console.h"
+#include "proc.h"
+#include "global.h"
+#include "proto.h"
+
 
 PRIVATE void init_idt_desc(unsigned char vector, u8 desc_type, int_handler handler, unsigned char privilege);
 PRIVATE void init_descriptor(DESCRIPTOR * p_desc, u32 base, u32 limit, u16 attribute);

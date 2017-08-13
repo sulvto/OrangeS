@@ -5,10 +5,12 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
 #include "string.h"
 #include "proc.h"
+#include "tty.h"
+#include "console.h"
 #include "global.h"
+#include "proto.h"
 
 PUBLIC void init_clock() {
     // 初始化 8253 PIT     

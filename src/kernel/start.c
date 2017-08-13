@@ -2,14 +2,15 @@
 // Created by sulvto on 17-7-27.
 //
 
-#include    "type.h"
-#include    "const.h"
-#include    "protect.h"
-#include    "proto.h"
-#include    "string.h"
-#include    "proc.h"
-#include    "global.h"
-
+#include "type.h"
+#include "const.h"
+#include "protect.h"
+#include "string.h"
+#include "proc.h"
+#include "tty.h"
+#include "console.h"
+#include "global.h"
+#include "proto.h"
 
 PUBLIC void cstart() {
     disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"

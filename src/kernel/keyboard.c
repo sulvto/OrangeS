@@ -5,10 +5,12 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
 #include "string.h"
 #include "proc.h"
+#include "tty.h"
+#include "console.h"
 #include "global.h"
+#include "proto.h"
 #include "keyboard.h"
 #include "keymap.h"
 
@@ -54,7 +56,7 @@ PUBLIC void init_keyboard() {
 
 
 
-PUBLIC void keyboard_read() {
+PUBLIC void keyboard_read(TTY* p_tty) {
     u8      scan_code;
     char    output[2];
     int     make;           // TRUE:make; FALSE:break;
@@ -111,7 +113,7 @@ PUBLIC void keyboard_read() {
         }
         if ((key != PAUSEBREAK) && (key != PRINTSCREEN)) {
             // Make Code or Break Code
-            make = (scan_code & FLAG_BREAK ? FALSE : TRUE);
+            make = (scan_code & FLAG_BREAK ? 0 : 1);
             keyrow = &keymap[(scan_code & 0x7F) * MAP_COLS];
 
             column = 0;
@@ -157,7 +159,7 @@ PUBLIC void keyboard_read() {
                 key |= alt_l   ? FLAG_ALT_L   : 0;
                 key |= alt_r   ? FLAG_ALT_R   : 0;
                 
-                in_process(key);
+                in_process(p_tty,key);
             }
         }
     }
