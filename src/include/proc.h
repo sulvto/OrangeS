@@ -44,8 +44,9 @@ typedef struct s_task {
 
 
 
-// Number of tasks
-#define NR_TASKS 4
+// Number of tasks & procs
+#define NR_TASKS 1
+#define NR_PROCS 3
 
 #define STACK_SIZE_TTY          0x8000
 #define STACK_SIZE_TESTA        0x8000

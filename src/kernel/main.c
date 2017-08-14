@@ -22,7 +22,22 @@ PUBLIC int kernel_main() {
     PROCESS*    p_proc          = proc_table;
     char*       p_task_stack    = task_stack + STACK_SIZE_TOTAL;
     u16         selector_ldt    = SELECTOR_LDT_FIRST;
-    for (int i=0; i<NR_TASKS; i++) {
+    u8          privilege;
+    u8          rpl;
+    int         eflags;
+    for (int i = 0; i < (NR_TASKS + NR_PROCS); i++) {
+        if (i < NR_TASKS) {
+            p_task = task_table + i;
+            privilege = PRIVILEGE_TASK;
+            rpl = RPL_TASK;
+            eflags = 0x1202;    // IF=1 IOPL=1 bit 2 is always 1
+        }else {
+            p_task = user_proc_table + (i - NR_TASKS);                 
+            privilege = PRIVILEGE_USER;
+            rpl = RPL_USER;
+            eflags = 0x202;    // IF=1 bit 2 is always 1
+        }
+
         strcpy(p_proc->p_name,p_task->name);
         p_proc->pid = i;
         p_proc->ldt_sel = selector_ldt;
@@ -51,7 +66,7 @@ PUBLIC int kernel_main() {
         p_task_stack -= p_task->stacksize;
         p_proc++;
         p_task++;
-        selector_ldt += 1<<3;
+        selector_ldt += 1<< 3;
     }
 
 
