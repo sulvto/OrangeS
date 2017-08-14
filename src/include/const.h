@@ -62,6 +62,9 @@
 #define V_MEM_BASE      0xB8000     // base of color video memory
 #define V_MEM_SIZE      0x8000      // 32K: B8000H -> BFFFFH
 
+#define LED_CODE        0xED
+#define KB_ACK          0xFA
+
 #define NR_SYS_CALL 1
 
 #endif
