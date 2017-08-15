@@ -41,9 +41,23 @@ PUBLIC void in_process(TTY* p_tty, u32 key);
 /* console.c */
 PUBLIC void out_char(CONSOLE* p_con, char ch);
 
+
+// printf.c
+PUBLIC int printf(const char *fmt, ...);
+
+// vsprintf.c
+PUBLIC int vsprintf(char *buf, const char *fmt, va_list args);
+
+
+// 系统调用相关
+
+// 系统调用 - 系统级
 // proc.c
 PUBLIC int sys_get_ticks();
-
+PUBLIC int sys_write(char* buf, int len, PROCESS* p_proc);
 // system.asm
 PUBLIC void sys_call();
+
+// 系统调用 - 用户级
 PUBLIC int  get_ticks();
+PUBLIC void write(char* buf, int len);

@@ -62,7 +62,9 @@ PUBLIC int kernel_main() {
         p_proc->regs.eflags = 0x1202;                                                // IF = 1,IOPL = 1, bit 2 is always 1.
         p_proc->regs.esp = (u32)p_task_stack;
         p_proc->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-
+        
+        p_proc->nr_tty = 0;
+        
         p_task_stack -= p_task->stacksize;
         p_proc++;
         p_task++;
@@ -74,6 +76,10 @@ PUBLIC int kernel_main() {
     proc_table[0].ticks = proc_table[0].priority = 15;
     proc_table[1].ticks = proc_table[1].priority = 5;
     proc_table[2].ticks = proc_table[2].priority = 3;
+
+    proc_table[1].nr_tty = 0;
+    proc_table[2].nr_tty = 1;
+    proc_table[3].nr_tty = 1;
 
     k_reenter = 0;
     ticks = 0;
@@ -92,7 +98,7 @@ PUBLIC int kernel_main() {
 void TestA() {
     while(1) {
 
-//        disp_str("A.");
+        printf("<Ticks:%x>",get_ticks());
         milli_delay(10);
     }
 }
@@ -100,7 +106,7 @@ void TestA() {
 void TestB() {
     int i=0X1000;
     while(1) {
-//        disp_str("B.");
+        printf("B.");
         milli_delay(10);
     }
 }
@@ -108,7 +114,7 @@ void TestB() {
 void TestC() {
     int i=0X2000;
     while(1) {
-//        disp_str("C.");
+        printf("C.");
         milli_delay(10);
     }
 }

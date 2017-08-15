@@ -5,6 +5,7 @@
 global memcpy
 global memset
 global strcpy
+global strlen
 
 ; 内存拷贝
 memcpy:
@@ -94,5 +95,26 @@ strcpy:
     
         mov eax,[ebp + 8]
 
+        pop ebp
+        ret
+
+;
+; int strlen(char* p_str);
+;
+strlen:
+        push ebp
+        mov ebp,esp
+        
+        mov eax,0
+        mov esi,[ebp + 8]
+
+    .1:
+        cmp byte [esi],0
+        jz .2
+        inc esi
+        inc eax
+        jmp .1
+
+    .2:
         pop ebp
         ret

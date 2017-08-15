@@ -19,7 +19,7 @@ DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 # This Program
 ORANGESBOOT	  = boot/boot.bin boot/loader.bin
 ORANGESKERNEL = kernel.bin
-OBJS		  = kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o kernel/clock.o kernel/keyboard.o kernel/tty.o kernel/console.o kernel/i8259.o kernel/global.o kernel/protect.o kernel/proc.o lib/kliba.o lib/klib.o lib/string.o
+OBJS		  = kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o kernel/clock.o kernel/keyboard.o kernel/tty.o kernel/console.o kernel/i8259.o kernel/global.o kernel/protect.o kernel/proc.o kernel/printf.o kernel/vsprintf.o lib/kliba.o lib/klib.o lib/string.o
 DASMOUTPUT	  = kernel.bin.asm
 
 .PHONY : everything final image clean realclean disasm all buildimg
@@ -87,6 +87,12 @@ kernel/global.o : kernel/global.c include/type.h include/const.h include/protect
 		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/protect.o : kernel/protect.c include/type.h include/const.h include/protect.h include/proc.h include/proto.h include/global.h
+		$(CC) $(CFLAGS) -o $@ $<
+
+kernel/printf.o: kernel/printf.c
+		$(CC) $(CFLAGS) -o $@ $<
+
+kernel/vsprintf.o: kernel/vsprintf.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 lib/klib.o : lib/klib.c include/type.h include/const.h include/protect.h include/string.h include/proc.h include/proto.h include/global.h

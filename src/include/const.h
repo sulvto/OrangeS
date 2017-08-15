@@ -65,7 +65,7 @@
 #define LED_CODE        0xED
 #define KB_ACK          0xFA
 
-#define NR_SYS_CALL 1
+#define NR_SYS_CALL     2
 
 #endif
 
