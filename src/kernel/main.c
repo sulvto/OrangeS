@@ -95,6 +95,19 @@ PUBLIC int kernel_main() {
     while(1){}
 }
 
+PUBLIC void panic(const char *fmt, ...) {
+    int i;
+    char buf[256];
+
+    va_list arg = (va_list)((char*)$fmt + 4);
+    
+    i = vsprintf(buf, fmt, arg);
+
+    printl("%c !!painc!! %s", MAG_CH_PANIC, buf);
+
+    _asm_ _volatile_("ud2");
+}
+
 void TestA() {
     while(1) {
 

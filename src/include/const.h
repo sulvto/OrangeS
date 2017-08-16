@@ -10,6 +10,15 @@
 
 #define EXTERN extern
 
+#define ASSERT
+#ifdef ASSERT
+void assertion_failure(char *exp, char *file, char *base_file, int line);
+#define assert(exp) if (exp) ;else assertion_failure(#exp, _FILE_, _BASE_FILE_, _LINE_)
+#else 
+#define assert(exp);
+#endif
+
+
 /*
  * GDT 和 IDT 中描述符的个数
  */
