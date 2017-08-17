@@ -2,7 +2,7 @@
 // Created by sulvto on 17-7-30.
 //
 
-typedef struct s_stackframe {
+struct stackframe {
         u32 gs;
         u32 fs;
         u32 es;
@@ -21,10 +21,10 @@ typedef struct s_stackframe {
         u32 eflags;
         u32 esp;
         u32 ss;
-}STACK_FRAME;
+};
 
-typedef struct s_proc {
-    STACK_FRAME     regs;            // process registers saved in stack frame
+struct proc {
+    struct stackframe regs;            // process registers saved in stack frame
 
     u16             ldt_sel;         // local descriptors for code and data */
     DESCRIPTOR          ldts[LDT_SIZE];  // process id passed in from MM
@@ -34,20 +34,35 @@ typedef struct s_proc {
 
     u32             pid;
     char            p_name[16];      // name of the process
-    int             nr_tty;
-}PROCESS;
 
-typedef struct s_task {
+    int p_flags;
+    MESSAGE * p_msg;
+    int p_recvfrom;
+    int p_sendto;
+
+    int has_int_msg;
+    
+    struct proc * q_sending;
+
+    struct proc * next_sending;
+    
+    int             nr_tty;
+};
+
+struct task {
     task_f  init_eip;
     int     stacksize;
     char    name[32];
 }TASK;
 
+#define proc2pid(x) (x - proc_table)
 
 
 // Number of tasks & procs
-#define NR_TASKS 1
-#define NR_PROCS 3
+#define NR_TASKS    2
+#define NR_PROCS    3
+#define FIRST_PROC  proc_table[0]
+#define LAST_PROC   proc_table[NR_TASKS + NR_PROCS -1]
 
 #define STACK_SIZE_TTY          0x8000
 #define STACK_SIZE_TESTA        0x8000

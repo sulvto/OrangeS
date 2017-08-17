@@ -108,6 +108,15 @@ PUBLIC void panic(const char *fmt, ...) {
     _asm_ _volatile_("ud2");
 }
 
+PUBLIC int get_ticks() {
+    MESSAGE msg;
+    reset_msg(&msg);
+    msg.type = GET_TICKS;
+    send_recv(BOTH, TASK_SYS, &msg);
+    return msg.RETVAL;
+}
+
+
 void TestA() {
     while(1) {
 
