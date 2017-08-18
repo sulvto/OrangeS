@@ -27,7 +27,7 @@ struct proc {
     struct stackframe regs;            // process registers saved in stack frame
 
     u16             ldt_sel;         // local descriptors for code and data */
-    DESCRIPTOR          ldts[LDT_SIZE];  // process id passed in from MM
+    struct descriptor  ldts[LDT_SIZE];  // process id passed in from MM
 
     int             ticks;
     int             priority;

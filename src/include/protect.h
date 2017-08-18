@@ -5,26 +5,26 @@
 #ifndef _ORANGES_PROTECT_H_
 #define _ORANGES_PROTECT_H_
 
-typedef struct s_descriptor {
+struct descriptor {
     u16     limit_low;          // Limit
     u16     base_low;           // Base
     u8      base_mid;           // Base
     u8      attr1;              // P（1） DPL（2） DT（1） TYPE（4）
     u8      limit_high_attr2;   // G（1） D（1） 0（1） AVL（1） LimitHigh(4)
     u8 base_high;          // Base
-} DESCRIPTOR;
+};
 
 // 门描述符
-typedef struct s_gate {
+struct gate {
     u16     offset_low;           // Offset low
     u16     selector;             // Selector
     u8      dcount;               // 
     u8      attr;                 // P（1） DPL（2） DT（1） TYPE（4）
     u16     offset_high;          // Offset high
-} GATE;
+};
 
 
-typedef struct s_tss {
+struct tss {
     u32     backlink;
     u32     esp0;
     u32     ss0;
@@ -52,7 +52,7 @@ typedef struct s_tss {
     u32     ldt;
     u16     trap;
     u16     iobase;
-}TSS;
+};
 
 
 // GDT

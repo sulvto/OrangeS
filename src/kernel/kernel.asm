@@ -269,14 +269,14 @@ save:
         push fs
         push gs
     
-        mov esi,edx     // 保存 edx
+        mov esi,edx     ; 保存 edx
 
         mov dx,ss
         mov ds,dx
         mov es,dx
         mov fs,dx
 
-        mov edx,esi     // 恢复 edx
+        mov edx,esi     ; 恢复 edx
 
         mov esi,esp    
 

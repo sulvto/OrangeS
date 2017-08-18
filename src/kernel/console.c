@@ -53,10 +53,10 @@ PUBLIC void out_char(CONSOLE* p_console,char ch) {
         case '\n':
             if (p_console->cursor < p_console->original_addr 
                                     + p_console->v_mem_limit 
-                                    - SCREEN_WIDTH) {
-                p_console->cursor = p_console->original_addr + SCREEN_WIDTH * 
+                                    - SCR_WIDTH) {
+                p_console->cursor = p_console->original_addr + SCR_WIDTH * 
                             ((p_console->cursor - p_console->original_addr)
-                            / SCREEN_WIDTH + 1);
+                            / SCR_WIDTH + 1);
             }
             break;
         case '\b':
@@ -76,7 +76,7 @@ PUBLIC void out_char(CONSOLE* p_console,char ch) {
             break;
     }
 
-    while (p_console->cursor >= p_console->current_start_addr + SCREEN_SIZE) {
+    while (p_console->cursor >= p_console->current_start_addr + SCR_SIZE) {
         scroll_screen(p_console,SCR_DN);
     }
     
@@ -117,14 +117,20 @@ PUBLIC void select_console(int nr_console) {
     set_video_start_addr(console_table[nr_console].current_start_addr);
 }
 
+/**
+ * SCR_UP: 向上滚屏
+ * SCR_DN: 向下滚屏
+ *
+ *
+ */
 PUBLIC void scroll_screen(CONSOLE* p_console, int direction) {
     if (direction == SCR_UP) {
         if(p_console->current_start_addr > p_console->original_addr) {
-            p_console->current_start_addr -= SCREEN_WIDTH;
+            p_console->current_start_addr -= SCR_WIDTH;
         } 
     }else if (direction == SCR_DN) {
-        if(p_console->current_start_addr + SCREEN_SIZE < p_console->original_addr + p_console-> v_mem_limit) {       
-            p_console->current_start_addr += SCREEN_WIDTH;
+        if(p_console->current_start_addr + SCR_SIZE < p_console->original_addr + p_console-> v_mem_limit) {       
+            p_console->current_start_addr += SCR_WIDTH;
         } 
     }else {
     }

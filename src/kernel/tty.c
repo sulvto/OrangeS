@@ -47,7 +47,7 @@ PUBLIC void tty_write(TTY* p_tty, char* buf, int len) {
     }
 }
 
-PUBLIC int sys_write(char* buf, int len, PROCESS* p_proc) {
+PUBLIC int sys_write(char* buf, int len, struct proc* p_proc) {
     tty_write(&tty_table[p_proc->nr_tty], buf, len);
     return 0;
 }
@@ -169,7 +169,7 @@ PUBLIC int sys_printx(int _unusedl, int _unused2, char* s, struct proc* p_proc) 
             }
         }
 
-        _asm_ _volatile_("hlt");
+        __asm__ __volatile__("hlt");
     }
 
     while ((ch = *p++) != 0) {

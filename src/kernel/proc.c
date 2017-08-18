@@ -21,7 +21,7 @@ PUBLIC int sys_get_ticks() {
 }
 
 PUBLIC void schedule() {
-    PROCESS *p;
+    struct proc *p;
     int greatest_ticks = 0;
     while (!greatest_ticks) {
         for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
@@ -34,7 +34,7 @@ PUBLIC void schedule() {
 
 
         if (!greatest_ticks) {
-            for (p = $FIRST_PROC; p <= $LAST_PROC; p++) { 
+            for (p = &FIRST_PROC; p <= &LAST_PROC; p++) { 
                 if (p->p_flags == 0){
                     p->ticks = p->priority;;
                 }
@@ -271,7 +271,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
         assert(m);
         phys_copy(va2la(proc2pid(p_who_wanna_recv), m), &msg, sizeof(MESSAGE));
         
-        p_who_wanna_recv-.has_int_msg = 0;
+        p_who_wanna_recv->has_int_msg = 0;
         
         assert(p_who_wanna_recv->p_flags == 0);
         assert(p_who_wanna_recv->p_msg == 0);

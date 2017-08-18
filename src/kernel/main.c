@@ -18,8 +18,8 @@
 PUBLIC int kernel_main() {
     disp_str("------------------\"kernel_main\" begins--------------------\n");
 
-    TASK*       p_task          = task_table;
-    PROCESS*    p_proc          = proc_table;
+    struct task*       p_task;
+    struct proc*    p_proc          = proc_table;
     char*       p_task_stack    = task_stack + STACK_SIZE_TOTAL;
     u16         selector_ldt    = SELECTOR_LDT_FIRST;
     u8          privilege;
@@ -43,9 +43,9 @@ PUBLIC int kernel_main() {
         p_proc->ldt_sel = selector_ldt;
         p_proc->ldt_sel = SELECTOR_LDT_FIRST;
 
-        memcpy(&p_proc->ldts[0],&gdt[SELECTOR_KERNEL_CS >> 3],sizeof(DESCRIPTOR));
+        memcpy(&p_proc->ldts[0],&gdt[SELECTOR_KERNEL_CS >> 3],sizeof(struct descriptor));
         p_proc->ldts[0].attr1 = DA_C | PRIVILEGE_TASK << 5;  // change the DPL
-        memcpy(&p_proc->ldts[1],&gdt[SELECTOR_KERNEL_DS >> 3],sizeof(DESCRIPTOR));
+        memcpy(&p_proc->ldts[1],&gdt[SELECTOR_KERNEL_DS >> 3],sizeof(struct descriptor));
         p_proc->ldts[1].attr1 = DA_DRW | PRIVILEGE_TASK << 5;  // change the DPL
 
         //  SA_RPL_MASK   0xFFFC      11111111 11111100
@@ -99,13 +99,13 @@ PUBLIC void panic(const char *fmt, ...) {
     int i;
     char buf[256];
 
-    va_list arg = (va_list)((char*)$fmt + 4);
+    va_list arg = (va_list)((char*)&fmt + 4);
     
     i = vsprintf(buf, fmt, arg);
 
     printl("%c !!painc!! %s", MAG_CH_PANIC, buf);
 
-    _asm_ _volatile_("ud2");
+    __asm__ __volatile__("ud2");
 }
 
 PUBLIC int get_ticks() {

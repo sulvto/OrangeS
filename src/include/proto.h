@@ -54,7 +54,7 @@ PUBLIC int vsprintf(char *buf, const char *fmt, va_list args);
 // 系统调用 - 系统级
 // proc.c
 PUBLIC int sys_get_ticks();
-PUBLIC int sys_write(char* buf, int len, PROCESS* p_proc);
+PUBLIC int sys_write(char* buf, int len, struct proc* p_proc);
 // system.asm
 PUBLIC void sys_call();
 
