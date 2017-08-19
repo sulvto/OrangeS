@@ -79,6 +79,9 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define  NR_IRQ     16
 #define  CLOCK_IRQ  0
 #define  KEYBOARD_IRQ   1
+#define  CASCADE_IRQ    2
+
+#define  AT_WINI_IRQ    14   
 
 // VGA
 #define CRTC_ADDR_REG   0x3D4       // CRT Controller Registers - Addr Registers
@@ -97,6 +100,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define INTERRUPT       -10
 #define TASK_TTY        0
 #define TASK_SYS        1
+#define TASK_HD         2
 #define ANY             (NR_TASKS + NR_PROCS + 10)
 #define NO_TASK         (NR_TASKS + NR_PROCS + 20)
 
@@ -117,9 +121,15 @@ enum msgtype {
     HARD_INT = 1,
     // SYS task
     GET_TICKS,
+    // message type for  drivers
+    DEV_OPEN = 1001
 };
 
 #define RETVAL      u.m3.m3i1
 
+
+
+// Hard Drive
+#define SECTOR_SIZE     512
 #endif
 

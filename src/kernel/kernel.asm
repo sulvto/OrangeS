@@ -157,10 +157,32 @@ hwint07:                ; Interrupt routine for irq 7 (printer).
 
 ; --------------------------
 %macro hwint_slave  1
+        call save
+        ; 屏蔽当前中断
+        in al,INT_S_CTLMASK
+        or al,(1 << (%1 - 8))
+        out INT_S_CTLMASK,al
+
+        ; 置EOI位(master)
+        mov al,EOI
+        out INT_M_CTLMASK,al
+        ; 置EOI位(slave)
+        nop
+        out INT_S_CTLMASK,al
+        sti
+
+        ; 中断处理程序 
         push %1
-        call spurious_irq
-        add esp,4
-        hlt
+        call [irq_table + 4 * %1]
+        pop ecx
+        cli
+
+        ; 恢复接受当前中断
+        in al,INT_S_CTLMASK
+        and al,~(1 << (%1 -8))
+        out INT_S_CTLMASK,al
+
+        ret
 %endmacro
 ; --------------------------
 ALIGN 16

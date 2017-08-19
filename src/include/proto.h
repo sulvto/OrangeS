@@ -48,12 +48,19 @@ PUBLIC void milli_delay(int milli_sec);
 PUBLIC void init_keyboard();
 PUBLIC void keyboard_read(TTY* p_tty);
 
+// kernel/hd.c
+PUBLIC void task_hd();
+PUBLIC void hd_handler(int irq);
+
 // tty.c
 PUBLIC void task_tty();
 PUBLIC void in_process(TTY* p_tty, u32 key);
 
 // systask.c
 PUBLIC void task_sys();
+
+// fs/main.c
+PUBLIC void task_fs();
 
 
 /* console.c */
