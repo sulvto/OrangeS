@@ -12,9 +12,9 @@ CC			= gcc
 LD			= ld
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -fno-builtin  -m32
-LDFLAGS		= -m elf_i386 -s -Ttext $(ENTRYPOINT)
-DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
+CFLAGS		= -I include/ -c -fno-builtin -Wall  -m32
+LDFLAGS		= -m elf_i386 -s -Ttext $(ENTRYPOINT) -Map krnl.map
+DASMFLAGS	= -D
 
 # This Program
 ORANGESBOOT	  = boot/boot.bin boot/loader.bin

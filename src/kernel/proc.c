@@ -26,13 +26,16 @@ PUBLIC int sys_get_ticks() {
 }
 
 PUBLIC void schedule() {
+
     struct proc *p;
     int greatest_ticks = 0;
     while (!greatest_ticks) {
         for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
             if (0 == p->p_flags) {
-                greatest_ticks = p->ticks;
-                p_proc_ready = p;
+                if (greatest_ticks < p->ticks) {
+                    greatest_ticks = p->ticks;
+                    p_proc_ready = p;
+                }
             }
         }
 
@@ -218,7 +221,7 @@ PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
                   va2la(proc2pid(sender), m),
                   sizeof(MESSAGE));
         p_dest->p_msg = 0;
-        p_dest->p_flags &= -RECEIVING;
+        p_dest->p_flags &= ~RECEIVING;
         p_dest->p_recvfrom = NO_TASK;
         unblock(p_dest);
 
@@ -351,7 +354,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
         
         p_from->p_msg = 0;
         p_from->p_sendto = NO_TASK;
-        p_from->p_flags &= -SENDING;
+        p_from->p_flags &= ~SENDING;
         unblock(p_from);
     } else {
         p_who_wanna_recv->p_flags != RECEIVING;
