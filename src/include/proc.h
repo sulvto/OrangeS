@@ -24,18 +24,18 @@ struct stackframe {
 };
 
 struct proc {
-    struct stackframe regs;            // process registers saved in stack frame
+    struct stackframe regs;             // process registers saved in stack frame
 
-    u16             ldt_sel;         // local descriptors for code and data */
+    u16 ldt_sel;                        // local descriptors for code and data */
     struct descriptor  ldts[LDT_SIZE];  // process id passed in from MM
 
-    int             ticks;
-    int             priority;
+    int ticks;
+    int priority;
 
-    u32             pid;
-    char            p_name[16];      // name of the process
+    u32 pid;
+    char name[16];                      // name of the process
 
-    int p_flags;
+    int p_flags;                        // process flags. A proc runnable if p_flags == 0.
     MESSAGE * p_msg;
     int p_recvfrom;
     int p_sendto;
@@ -46,7 +46,7 @@ struct proc {
 
     struct proc * next_sending;
     
-    int             nr_tty;
+    int nr_tty;
 };
 
 struct task {
@@ -65,7 +65,10 @@ struct task {
 #define LAST_PROC   proc_table[NR_TASKS + NR_PROCS -1]
 
 #define STACK_SIZE_TTY          0x8000
+#define STACK_SIZE_SYS          0x8000
 #define STACK_SIZE_TESTA        0x8000
 #define STACK_SIZE_TESTB        0x8000
 #define STACK_SIZE_TESTC        0x8000
-#define STACK_SIZE_TOTAL        (STACK_SIZE_TTY + STACK_SIZE_TESTA + STACK_SIZE_TESTB + STACK_SIZE_TESTC)
+
+#define STACK_SIZE_TOTAL        (STACK_SIZE_TTY + STACK_SIZE_SYS + STACK_SIZE_TESTA + STACK_SIZE_TESTB + STACK_SIZE_TESTC)
+

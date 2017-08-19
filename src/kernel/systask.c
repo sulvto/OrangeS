@@ -1,6 +1,16 @@
 //
 // Created by sulvto on 17-8-17.
 //
+#include "type.h"
+#include "const.h"
+#include "protect.h"
+#include "string.h"
+#include "proc.h"
+#include "tty.h"
+#include "console.h"
+#include "global.h"
+#include "keyboard.h"
+#include "proto.h"
 
 /**
  * <Ring 1> The main loop of TASK SYS.

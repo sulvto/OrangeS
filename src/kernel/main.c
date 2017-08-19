@@ -38,7 +38,7 @@ PUBLIC int kernel_main() {
             eflags = 0x202;    // IF=1 bit 2 is always 1
         }
 
-        strcpy(p_proc->p_name,p_task->name);
+        strcpy(p_proc->name,p_task->name);
         p_proc->pid = i;
         p_proc->ldt_sel = selector_ldt;
         p_proc->ldt_sel = SELECTOR_LDT_FIRST;

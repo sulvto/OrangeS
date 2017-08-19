@@ -1,29 +1,29 @@
 %include "sconst.inc"
 
 INT_VECTOR_SYS_CSLL equ 0x90
-_NR_get_ticks       equ 0
-_NR_write           equ 1
-_NR_sendrec         equ 2
+_NR_printx          equ 0
+_NR_sendrec         equ 1
 
-global get_ticks
-global write
+global printx
+global sendrec
 
 bits 32
 
 [section .text]
 
-get_ticks:
-        mov eax,_NR_get_ticks
-        int INT_VECTOR_SYS_CSLL
-        ret
 
-write:
-        mov eax,_NR_write
+;
+; void printx(char* s);
+;
+printx:
+        mov eax,_NR_printx
         mov ebx,[esp + 4]
-        mov ecx,[esp + 8]
         int INT_VECTOR_SYS_CSLL
         ret
 
+;
+; sendrec(int function, int src_dest, MESSAGE* msg);
+;
 sendrec:
         mov eax,_NR_sendrec
         mov ebx,[esp + 4]   ; function
@@ -31,3 +31,5 @@ sendrec:
         mov edx,[esp + 12]  ; p_img
         int INT_VECTOR_SYS_CSLL
         ret
+
+

@@ -61,6 +61,10 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define  TIMER_FREQ     1193182L
 #define  HZ             100
 
+// Process
+#define SENDING         0x02
+#define RECEIVING       0x04
+
 // TTY
 #define NR_CONSOLES     3
 
@@ -87,6 +91,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define KB_ACK          0xFA
 
 // task
+#define INTERRUPT       -10
 #define TASK_TTY        0
 #define TASK_SYS        1
 #define ANY             (NR_TASKS + NR_PROCS + 10)

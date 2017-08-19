@@ -12,6 +12,11 @@
 #include "global.h"
 #include "proto.h"
 
+PRIVATE void block(struct proc* p);
+PRIVATE void unblock(struct proc* p);
+PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m);
+PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m);
+PRIVATE int deadlock(int src, int dest);
 
 /**
  * sys_get_ticks
@@ -126,7 +131,7 @@ PUBLIC int ldt_seg_linear(struct proc* p, int idx) {
 PUBLIC void* va2la(int pid, void* va) {
     struct proc* p = &proc_table[pid];
 
-    u32 seg_base = ldt_seg_linear(p, INDEX_LDT_RM);
+    u32 seg_base = ldt_seg_linear(p, INDEX_LDT_RW);
     u32 la = seg_base + (u32)va;
 
     if (pid < NR_TASKS + NR_PROCS) {
@@ -234,7 +239,7 @@ PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
         if (p_dest->q_sending) {
             // append to the sending queue
             struct proc * p;
-            p = p_dest->sending;
+            p = p_dest->q_sending;
             while (p->next_sending) {
                 p = p->next_sending;
             }
@@ -352,7 +357,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
         p_who_wanna_recv->p_flags != RECEIVING;
     
         p_who_wanna_recv->p_msg = m;
-        if (sec == ANY) {
+        if (src == ANY) {
             p_who_wanna_recv->p_recvfrom = ANY;
         } else {
             p_who_wanna_recv->p_recvfrom = proc2pid(p_from);
@@ -364,7 +369,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
         assert(p_who_wanna_recv->p_msg != 0);
         assert(p_who_wanna_recv->p_recvfrom != NO_TASK);
         assert(p_who_wanna_recv->p_sendto == NO_TASK);
-        assert(p_who_wanna_recv->p_has_int_msg == 0);
+        assert(p_who_wanna_recv->has_int_msg == 0);
     }
         
     return 0;
