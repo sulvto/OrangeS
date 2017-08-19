@@ -18,34 +18,39 @@
 PUBLIC int kernel_main() {
     disp_str("------------------\"kernel_main\" begins--------------------\n");
 
-    TASK*       p_task          = task_table;
-    PROCESS*    p_proc          = proc_table;
+    struct task*       p_task;
+    struct proc*    p_proc          = proc_table;
     char*       p_task_stack    = task_stack + STACK_SIZE_TOTAL;
     u16         selector_ldt    = SELECTOR_LDT_FIRST;
     u8          privilege;
     u8          rpl;
     int         eflags;
+    int         prio;
     for (int i = 0; i < (NR_TASKS + NR_PROCS); i++) {
         if (i < NR_TASKS) {
+            // task
             p_task = task_table + i;
             privilege = PRIVILEGE_TASK;
             rpl = RPL_TASK;
             eflags = 0x1202;    // IF=1 IOPL=1 bit 2 is always 1
+            prio = 15;
         }else {
+            // user proc 
             p_task = user_proc_table + (i - NR_TASKS);                 
             privilege = PRIVILEGE_USER;
             rpl = RPL_USER;
             eflags = 0x202;    // IF=1 bit 2 is always 1
+            prio = 5;
         }
 
-        strcpy(p_proc->p_name,p_task->name);
+        strcpy(p_proc->name,p_task->name);
         p_proc->pid = i;
         p_proc->ldt_sel = selector_ldt;
         p_proc->ldt_sel = SELECTOR_LDT_FIRST;
 
-        memcpy(&p_proc->ldts[0],&gdt[SELECTOR_KERNEL_CS >> 3],sizeof(DESCRIPTOR));
+        memcpy(&p_proc->ldts[0],&gdt[SELECTOR_KERNEL_CS >> 3],sizeof(struct descriptor));
         p_proc->ldts[0].attr1 = DA_C | PRIVILEGE_TASK << 5;  // change the DPL
-        memcpy(&p_proc->ldts[1],&gdt[SELECTOR_KERNEL_DS >> 3],sizeof(DESCRIPTOR));
+        memcpy(&p_proc->ldts[1],&gdt[SELECTOR_KERNEL_DS >> 3],sizeof(struct descriptor));
         p_proc->ldts[1].attr1 = DA_DRW | PRIVILEGE_TASK << 5;  // change the DPL
 
         //  SA_RPL_MASK   0xFFFC      11111111 11111100
@@ -64,19 +69,23 @@ PUBLIC int kernel_main() {
         p_proc->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
         
         p_proc->nr_tty = 0;
-        
+
+        p_proc->p_flags = 0;
+        p_proc->p_msg = 0;
+        p_proc->p_recvfrom = NO_TASK;
+        p_proc->p_sendto = NO_TASK;
+        p_proc->has_int_msg = 0;
+        p_proc->q_sending = 0;
+        p_proc->next_sending = 0;       
+
+        p_proc->ticks = p_proc->priority = prio;
+ 
         p_task_stack -= p_task->stacksize;
         p_proc++;
         p_task++;
         selector_ldt += 1<< 3;
     }
 
-
-
-    proc_table[0].ticks = proc_table[0].priority = 15;
-    proc_table[1].ticks = proc_table[1].priority = 5;
-    proc_table[2].ticks = proc_table[2].priority = 3;
-    proc_table[3].ticks = proc_table[3].priority = 3;
 
     proc_table[1].nr_tty = 0;
     proc_table[2].nr_tty = 1;
@@ -95,6 +104,28 @@ PUBLIC int kernel_main() {
 
     while(1){}
 }
+
+PUBLIC void panic(const char *fmt, ...) {
+    int i;
+    char buf[256];
+
+    va_list arg = (va_list)((char*)&fmt + 4);
+    
+    i = vsprintf(buf, fmt, arg);
+
+    printl("%c !!painc!! %s", MAG_CH_PANIC, buf);
+
+    __asm__ __volatile__("ud2");
+}
+
+PUBLIC int get_ticks() {
+    MESSAGE msg;
+    reset_msg(&msg);
+    msg.type = GET_TICKS;
+    send_recv(BOTH, TASK_SYS, &msg);
+    return msg.RETVAL;
+}
+
 
 void TestA() {
     while(1) {

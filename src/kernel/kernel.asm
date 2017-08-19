@@ -268,10 +268,15 @@ save:
         push es
         push fs
         push gs
+    
+        mov esi,edx     ; 保存 edx
 
         mov dx,ss
         mov ds,dx
         mov es,dx
+        mov fs,dx
+
+        mov edx,esi     ; 恢复 edx
 
         mov esi,esp    
 
@@ -313,14 +318,20 @@ restart_rennter:
 
 sys_call:
         call save
-        push dword [p_proc_ready]
-        sti
 
+        sti
+        push esi
+        
+        push dword [p_proc_ready]
+        push edx
         push ecx
         push ebx
+        
         call [sys_call_table + eax * 4]
-        add esp,4 * 3
-
+        add esp,4 * 4
+        
+        pop esi
         mov [esi + EAXREG - P_STACKBASE],eax
         cli
+
         ret

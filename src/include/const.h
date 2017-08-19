@@ -10,6 +10,30 @@
 
 #define EXTERN extern
 
+#define ASSERT
+#ifdef ASSERT
+void assertion_failure(char *exp, char *file, char *base_file, int line);
+#define assert(exp) if (exp) ; else assertion_failure(#exp, __FILE__, __BASE_FILE__, __LINE__)
+#else 
+#define assert(exp);
+#endif
+
+
+#define STR_DEFAULT_LEN 1024
+
+/**
+ * Color
+ */
+#define BLACK   0x0     // 0000
+#define WHITE   0x7     // 0111
+#define RED     0x4     // 0100
+#define GREEN   0x2     // 0010
+#define BLUE    0x1     // 0001
+#define FLASH   0x80    // 1000 0000
+#define BRIGHT  0x08    // 0000 1000
+#define MAKE_COLOR(x,y) ((x<<4) | y)
+
+
 /*
  * GDT 和 IDT 中描述符的个数
  */
@@ -40,6 +64,10 @@
 #define  TIMER_FREQ     1193182L
 #define  HZ             100
 
+// Process
+#define SENDING         0x02
+#define RECEIVING       0x04
+
 // TTY
 #define NR_CONSOLES     3
 
@@ -65,7 +93,33 @@
 #define LED_CODE        0xED
 #define KB_ACK          0xFA
 
-#define NR_SYS_CALL     2
+// task
+#define INTERRUPT       -10
+#define TASK_TTY        0
+#define TASK_SYS        1
+#define ANY             (NR_TASKS + NR_PROCS + 10)
+#define NO_TASK         (NR_TASKS + NR_PROCS + 20)
+
+
+#define NR_SYS_CALL     3
+
+// ipc
+#define SEND            1
+#define RECEIVE         2
+#define BOTH            3       // BOTH = (SEND | RECEIVE)
+
+// magic chars used by 'printx'
+#define MAG_CH_PANIC    '\002'
+#define MAG_CH_ASSERT   '\003'
+
+enum msgtype {
+    // 
+    HARD_INT = 1,
+    // SYS task
+    GET_TICKS,
+};
+
+#define RETVAL      u.m3.m3i1
 
 #endif
 
