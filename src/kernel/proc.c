@@ -65,7 +65,9 @@ PUBLIC void schedule() {
 PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p) {
     assert(k_reenter == 0); // make sure we are not in ring0
     assert((src_dest >= 0 && src_dest < NR_TASKS + NR_PROCS) || src_dest == ANY || src_dest == INTERRUPT);
-    
+
+    printl("sys_sendrec:%d\n",function);
+ 
     int ret = 0;
     int caller = proc2pid(p);
     MESSAGE* mla = (MESSAGE*)va2la(caller, m);
@@ -86,6 +88,7 @@ PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p) {
 
 
 PUBLIC int send_recv(int function, int src_dest, MESSAGE* msg) {
+    printl("send_recv:%d\n",function);
     int ret = 0;
     
     if (function == RECEIVE) {
@@ -94,6 +97,7 @@ PUBLIC int send_recv(int function, int src_dest, MESSAGE* msg) {
 
     switch (function) {
         case BOTH:
+            printl("send_recv:SEND\n");    
             ret = sendrec(SEND, src_dest, msg);
             if (ret == 0) {
                 ret = sendrec(RECEIVE, src_dest, msg);
@@ -101,6 +105,7 @@ PUBLIC int send_recv(int function, int src_dest, MESSAGE* msg) {
             break;
         case SEND:
         case RECEIVE:
+             printl("send_recv:SEND,RECEIVE\n");    
             ret = sendrec(function, src_dest, msg);
             break;
         default:
@@ -201,6 +206,8 @@ PRIVATE int deadlock(int src, int dest) {
 }
 
 PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
+    printl("msg_send src:%d\n",dest);
+
     struct proc* sender = current;
     struct proc* p_dest = proc_table + dest;
     
@@ -251,6 +258,8 @@ PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
             p_dest->q_sending = sender;
         }
         sender->next_sending = 0;
+
+        printl("sender block\n");
         block(sender);
         
         assert(sender->p_flags == SENDING);
@@ -264,6 +273,8 @@ PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
 
 
 PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
+    printl("msg_receive src:%d\n",src);
+
     struct proc* p_who_wanna_recv = current;
     struct proc* p_from = 0;
     struct proc* prev = 0;
@@ -357,7 +368,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
         p_from->p_flags &= ~SENDING;
         unblock(p_from);
     } else {
-        p_who_wanna_recv->p_flags != RECEIVING;
+        p_who_wanna_recv->p_flags |= RECEIVING;
     
         p_who_wanna_recv->p_msg = m;
         if (src == ANY) {
@@ -366,11 +377,13 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
             p_who_wanna_recv->p_recvfrom = proc2pid(p_from);
         }
 
+        printl("p_who_wanna_recv block\n");
         block(p_who_wanna_recv);
 
         assert(p_who_wanna_recv->p_flags == RECEIVING);
         assert(p_who_wanna_recv->p_msg != 0);
         assert(p_who_wanna_recv->p_recvfrom != NO_TASK);
+              __asm__ __volatile__("ud2");
         assert(p_who_wanna_recv->p_sendto == NO_TASK);
         assert(p_who_wanna_recv->has_int_msg == 0);
     }

@@ -109,9 +109,11 @@ PUBLIC void panic(const char *fmt, ...) {
 }
 
 PUBLIC int get_ticks() {
+    printl("get_ticks");
     MESSAGE msg;
     reset_msg(&msg);
     msg.type = GET_TICKS;
+    printl("send_recv->%d",BOTH);
     send_recv(BOTH, TASK_SYS, &msg);
     return msg.RETVAL;
 }
@@ -120,7 +122,7 @@ PUBLIC int get_ticks() {
 void TestA() {
     while(1) {
 
-        printf("<Ticks:%x>",get_ticks());
+       // printf("<Ticks:%x>",get_ticks());
         milli_delay(10);
     }
 }

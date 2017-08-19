@@ -28,7 +28,7 @@ sendrec:
         mov eax,_NR_sendrec
         mov ebx,[esp + 4]   ; function
         mov ecx,[esp + 8]   ; src_dest
-        mov edx,[esp + 12]  ; p_img
+        mov edx,[esp + 12]  ; p_msg
         int INT_VECTOR_SYS_CSLL
         ret
 
