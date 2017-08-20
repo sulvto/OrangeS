@@ -130,8 +130,8 @@ PUBLIC int get_ticks() {
 void TestA() {
     while(1) {
 
-        printf("<Ticks:%x>",get_ticks());
-        milli_delay(10);
+//        printf("<Ticks:%x>",get_ticks());
+//        milli_delay(10);
     }
 }
 

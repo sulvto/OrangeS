@@ -24,7 +24,8 @@ OBJS		  = kernel/kernel.o kernel/syscall.o kernel/start.o \
 				kernel/tty.o kernel/console.o kernel/i8259.o \
 				kernel/global.o kernel/protect.o kernel/proc.o kernel/systask.o kernel/hd.o\
 				kernel/printf.o kernel/vsprintf.o lib/kliba.o \
-				lib/klib.o lib/string.o lib/misc.o
+				lib/klib.o lib/string.o lib/misc.o	\
+				fs/main.o
 DASMOUTPUT	  = kernel.bin.asm
 
 .PHONY : everything final image clean realclean disasm all buildimg
