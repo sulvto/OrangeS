@@ -29,6 +29,20 @@ PUBLIC struct task      user_proc_table[NR_PROCS] = {
         {TestB, STACK_SIZE_TESTB, "TaskB"},
         {TestC, STACK_SIZE_TESTC, "TaskC"}};
 
+/**
+ * For dd_map[k],
+ *  'k' is the device nr.\ dd_map[k].driver_nr is the driver nr.
+ *
+ */
+struct dev_drv_map dd_map[] = {
+    // ddeiver nr.
+    {INVALID_DRIVER},
+    {INVALID_DRIVER},
+    {INVALID_DRIVER},
+    {TASK_HD},
+    {TASK_TTY},
+    {INVALID_DRIVER}
+}
 
 
 PUBLIC irq_handler irq_table[NR_IRQ];

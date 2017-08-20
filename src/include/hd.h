@@ -48,4 +48,15 @@ struct hd_cmd {
 // for DEVICE register
 #define MAKE_DEVICE_REG(lba,drv,lba_highest) (((lba) <<  6) | ((drv) << 4 ) | (lba_highest & 0xF) | 0xA0);
 
+struct part_info {
+    u32 base;   
+    u32 size;
+}
+
+struct hd_info {
+    int open_cnt;
+    struct part_info    primary[NR_PRIM_PER_DRIVE];
+    struct part_info    logical[NR_SUB_PER_DRIVE];
+}
+
 #endif

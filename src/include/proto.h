@@ -85,6 +85,7 @@ PUBLIC void* va2la(int pid, void* va);
 PUBLIC int ldt_seg_linear(struct proc* p, int idx);
 PUBLIC void reset_msg(MESSAGE* m);
 PUBLIC int send_recv(int function,int src_dest, MESSAGE* msg);
+PUBLIC void inform_int(int task_nr);
 
 // lib/misc.c
 PUBLIC void spin(char * func_name);
