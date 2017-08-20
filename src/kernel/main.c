@@ -86,9 +86,9 @@ PUBLIC int kernel_main() {
         selector_ldt += 1<< 3;
     }
 
-    proc_table[1].nr_tty = 0;
-    proc_table[2].nr_tty = 1;
-    proc_table[3].nr_tty = 1;
+    proc_table[NR_TASKS + 0].nr_tty = 0;
+    proc_table[NR_TASKS + 1].nr_tty = 1;
+    proc_table[NR_TASKS + 2].nr_tty = 1;
 
     k_reenter = 0;
     ticks = 0;

@@ -160,7 +160,7 @@ PUBLIC int sys_printx(int _unusedl, int _unused2, char* s, struct proc* p_proc) 
         while (v < (char *)(V_MEM_BASE + V_MEM_SIZE)) {
             *v++ = *q++;
             *v++ = RED_CHAR;
-            if (!*p) {
+            if (!*q) {
                 while (((int)v - V_MEM_SIZE) & (SCR_WIDTH * 16)) {
                     v++;
                     *v++ = GRAY_CHAR;
