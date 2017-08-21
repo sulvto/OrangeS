@@ -42,7 +42,7 @@ struct dev_drv_map dd_map[] = {
     {TASK_HD},
     {TASK_TTY},
     {INVALID_DRIVER}
-}
+};
 
 
 PUBLIC irq_handler irq_table[NR_IRQ];
@@ -51,3 +51,12 @@ PUBLIC system_call sys_call_table[NR_SYS_CALL] = {sys_printx, sys_sendrec};
 
 PUBLIC TTY      tty_table[NR_CONSOLES];
 PUBLIC CONSOLE  console_table[NR_CONSOLES];
+
+
+/**
+ * 6MB~7MB: buffer for FS
+ *
+ */
+PUBLIC u8 * fsbuf           = (u8*)0x600000;
+PUBLIC const int FSBUF_SIZE = 0x100000;
+
