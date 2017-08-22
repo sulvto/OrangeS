@@ -4,9 +4,12 @@
 #ifndef _ORANGES_FS_H_
 #define _ORANGES_FS_H_
 
+struct dev_drv_map {
+    int driver_nr;    
+};
 
 // Magic number of FS v1.0
-#define MAGIC_V!        0x111
+#define MAGIC_V1        0x111
 
 struct super_block {
     u32 magic;
@@ -60,9 +63,9 @@ struct dir_entry {
 
 #define DIR_ENTRY_SIZE sizeof(struct dir_entry)
 
-#define RD_SECT(dev, sect_nr) rw_sector(DEV_READ, dev, (sect_nr) * SECTOT_SIZE, SECTOT_SIZE, TASK_FS, fsbuf);
+#define RD_SECT(dev, sect_nr) rw_sector(DEV_READ, dev, (sect_nr) * SECTOR_SIZE, SECTOT_SIZE, TASK_FS, fsbuf);
 
-#define WR_SECT(dev, sect_nr) rw_sector(DEV_WRITE, dev, (sect_nr) * SECTOT_SIZE, SECTOT_SIZE, TASK_FS, fsbuf);
+#define WR_SECT(dev, sect_nr) rw_sector(DEV_WRITE, dev, (sect_nr) * SECTOR_SIZE, SECTOR_SIZE, TASK_FS, fsbuf);
 
 
 #endif

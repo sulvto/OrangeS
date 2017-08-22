@@ -6,6 +6,7 @@
 #include    "const.h"
 #include    "protect.h"
 #include    "string.h"
+#include    "fs.h"
 #include    "proc.h"
 #include    "console.h"
 #include    "tty.h"

@@ -23,6 +23,7 @@ PRIVATE void print_identify_info(u16* hdinfo);
 PRIVATE void get_part_table(int drive, int sect_nr, struct part_ent * entry);
 PRIVATE void hd_open(int device);
 PRIVATE void hd_close(int device);
+PRIVATE void hd_rdwt(MESSAGE * p);
 PRIVATE void hd_ioctl(MESSAGE * p);
 PRIVATE void partition(int device, int style);
 PRIVATE void print_hdinfo(struct hd_info * hdi);
@@ -32,7 +33,7 @@ PRIVATE u8 hdbuf[SECTOR_SIZE * 2];
 
 PRIVATE struct hd_info hd_info[1];
 
-#define DEV_OF_DEV(dev) (dev <= MAX_PRIN ? dev / NR_PRIN_PER_DRIVE : (dev - MINOR_hdla) / NR_SUB_PER_DRIVE)
+#define DRV_OF_DEV(dev) (dev <= MAX_PRIN ? dev / NR_PRIM_PER_DRIVE : (dev - MINOR_hd1a) / NR_SUB_PER_DRIVE)
 
 /**
  * Main loop of HD driver.
@@ -95,7 +96,7 @@ PRIVATE void init_hd() {
  * @param device The device to be open.
  */
 PRIVATE void hd_open(int device) {
-    int drive = DEV_OF_DEV(device);
+    int drive = DRV_OF_DEV(device);
     assert(drive == 0);
     
     hd_identify(drive);
@@ -113,7 +114,7 @@ PRIVATE void hd_open(int device) {
  * @param device The device to be opened.
  */
 PRIVATE void hd_close(int device) {
-    int drive = DEV_OF_DEV(device);
+    int drive = DRV_OF_DEV(device);
     assert(drive == 0);
     
     hd_info[drive].open_cnt--;
@@ -125,8 +126,8 @@ PRIVATE void hd_close(int device) {
  *
  * @param p Message ptr.
  */
-PRIVATE void hd_rdet(MESSAGE * p) {
-    int drive = DEV_OF_DEV(p->DEVICE);
+PRIVATE void hd_rdwt(MESSAGE * p) {
+    int drive = DRV_OF_DEV(p->DEVICE);
     u64 pos = p->POSITION;
     assert((pos >> SECTOR_SIZE_SHIFT) < (1 << 31));
     assert((pos & 0x1FF) == 0);
@@ -134,35 +135,35 @@ PRIVATE void hd_rdet(MESSAGE * p) {
     int logidx = (p->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
     sect_nr += p->DEVICE < MAX_PRIN ? hd_info[drive].primary[p->DEVICE].base : hd_info[drive].logical[logidx].base;
 
-    struct hd_cmd = cmd;
+    struct hd_cmd cmd;
     cmd.features = 0;
     cmd.count = (p->CNT + SECTOR_SIZE - 1) / SECTOR_SIZE;
     cmd.lba_low = sect_nr & 0xFF;
     cmd.lba_mid = (sect_nr >> 8) & 0xFF;
     cmd.lba_high = (sect_nr >> 16) & 0xFF;
-    cmd.device = MAKE_DEVICE_REG(1,drive. (sect_nr >> 24) & 0xF);
+    cmd.device = MAKE_DEVICE_REG(1,drive, (sect_nr >> 24) & 0xF);
     cmd.command = (p->type == DEV_READ) ? ATA_READ : ATA_WRITE;
     hd_cmd_out(&cmd);
 
     int bytes_left = p->CNT;
-    void * 1a = (void*)va21a(p->PROC_NR, p->BUF);
+    void * la = (void*)va2la(p->PROC_NR, p->BUF);
 
     while (bytes_left) {
         int bytes = min(SECTOR_SIZE, bytes_left);
         if (p->type == DEV_READ) {
             interrupt_wait();
             port_read(REG_DATA, hdbuf, SECTOR_SIZE);
-            phys_copy(la, (void*)va21a(TASK_HD, hdbuf), bytes);
+            phys_copy(la, (void*)va2la(TASK_HD, hdbuf), bytes);
         } else {
             if (!waitfor(STATUS_DRQ, STATUS_DRQ, HD_TIMEOUT)) {
                 panic("hd writing error.");
             }
-            port_write(REG_DATA, 1a, bytes);
+            port_write(REG_DATA, la, bytes);
             interrupt_wait();
         }
 
         bytes_left = SECTOR_SIZE;
-        1a += SECTOR_SIZE;
+        la += SECTOR_SIZE;
     }
 }
 
@@ -172,13 +173,13 @@ PRIVATE void hd_rdet(MESSAGE * p) {
  */
 PRIVATE void hd_ioctl(MESSAGE * p) {
     int device = p->DEVICE;
-    int drive = DEV_OF_DEV(device);
+    int drive = DRV_OF_DEV(device);
     
-    struct hd_info * hdi = &hd_info(drive);
+    struct hd_info * hdi = &hd_info[drive];
 
     if (p->REQUEST == DIOCTL_GET_GEO) {
-        void * dst = va21a(p->PROC_NR, p->BUF);
-        void * src = va21a(TASK_HD, device < MAX_PRIN ? &hdi->primary[device] : &hdi->logical[(device - MINOR_hd1a) % NR_SUB_PER_DRIVE]);
+        void * dst = va2la(p->PROC_NR, p->BUF);
+        void * src = va2la(TASK_HD, device < MAX_PRIN ? &hdi->primary[device] : &hdi->logical[(device - MINOR_hd1a) % NR_SUB_PER_DRIVE]);
         phys_copy(dst, src, sizeof(struct part_info));
     } else {
         assert(0);
@@ -191,7 +192,7 @@ PRIVATE void get_part_table(int drive, int sect_nr, struct part_ent * entry) {
     struct hd_cmd cmd;
     cmd.features = 0;
     cmd.count = 1;
-    cmd.lba_low = sect_nr & 0xFF
+    cmd.lba_low = sect_nr & 0xFF;
     cmd.lba_mid = (sect_nr >> 8) & 0xFF;
     cmd.lba_high = (sect_nr >> 16) & 0xFF;
     cmd.device = MAKE_DEVICE_REG(1, drive, (sect_nr >> 24) & 0xF);
@@ -200,12 +201,12 @@ PRIVATE void get_part_table(int drive, int sect_nr, struct part_ent * entry) {
     interrupt_wait();
     
     port_read(REG_DATA, hdbuf, SECTOR_SIZE);
-    memcpy(entry, hdbuf + PARTITION_TABLE_OFFSET, sizeof(struct part_ent) * NR_PRIN_PER_DRIVE);
+    memcpy(entry, hdbuf + PARTITION_TABLE_OFFSET, sizeof(struct part_ent) * NR_PRIM_PER_DRIVE);
 }
 
 
 PRIVATE void partition(int device, int style) {
-    int drive = DEV_OF_DEV(device);
+    int drive = DRV_OF_DEV(device);
     struct hd_info * hdi = &hd_info[drive];
     
     struct part_ent part_tbl[NR_SUB_PER_DRIVE];
@@ -223,13 +224,13 @@ PRIVATE void partition(int device, int style) {
             hdi->primary[dev_nr].base = part_tbl[i].start_sect;
             hdi->primary[dev_nr].size = part_tbl[i].nr_sects;
 
-            if (part_tbl[i].sys_id == EXT__PART) {
+            if (part_tbl[i].sys_id == EXT_PART) {
                 partition(device + dev_nr, P_EXTENDED);
             }
         }
         assert(nr_prim_parts != 0);
     } else if (style == P_EXTENDED){
-        int j = device % NR_PRIN_PER_DRIVE;
+        int j = device % NR_PRIM_PER_DRIVE;
         int ext_start_sect = hdi->primary[j].base;
         int s = ext_start_sect;
         int nr_lst_sub = (j - 1) * NR_SUB_PER_PART;
@@ -263,7 +264,7 @@ PRIVATE void print_hdinfo(struct hd_info * hdi) {
             hdi->primary[i].size,
             hdi->primary[i].size);
     }
-    for (int i=0; i < NR_SUBT_PER_DRIVE; i++) {
+    for (int i=0; i < NR_SUB_PER_DRIVE; i++) {
         if (hdi->logical[i].size == 0) continue;
         printl("         %d: base %d(0x%x), size %d(0x%x) (in sector)\n", 
             i,

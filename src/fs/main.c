@@ -2,6 +2,7 @@
 // Created by sulvto on 17-8-19.
 //
 #include "type.h"
+#include "config.h"
 #include "const.h"
 #include "protect.h"
 #include "string.h"
@@ -16,6 +17,7 @@
 
 
 PRIVATE void init_fs();
+PRIVATE void mkfs();
 
 /**
  * <Ring 1> The main loop of TASK FS
@@ -62,9 +64,9 @@ PRIVATE void mkfs() {
     sb.nr_inode_sects   = sb.nr_inodes;
     sb.nr_sects         = geo.size;
     sb.nr_imap_sects    = 1;
-    sb.nr_smap_sects    = sb.nr_sects / bits_per_sect
-    sb.n_lst_sect       = 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects + sb.nr_inodes;
-    sb.root_sect        = ROOT_INODE;
+    sb.nr_smap_sects    = sb.nr_sects / bits_per_sect;
+    sb.n_lst_sect       = 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects + sb.nr_inode_sects;
+    sb.root_inode       = ROOT_INODE;
     sb.inode_size       = INODE_SIZE;
     struct inode x;
     sb.inode_isize_off  = (int)&x.i_size - (int)&x;
@@ -102,7 +104,9 @@ PRIVATE void mkfs() {
     // sector map
     memset(fsbuf, 0, SECTOR_SIZE);
     int nr_sects = NR_DEFAULT_FILE_SECTS + 1;
-    for (int i = 0; i < nr_sects / 8; i++) {
+
+    int i;
+    for (i = 0; i < nr_sects / 8; i++) {
         fsbuf[i] = 0xFF;
     }
     for (int j = 0; j < nr_sects % 8; j++) {
@@ -139,14 +143,14 @@ PRIVATE void mkfs() {
     memset(fsbuf, 0, SECTOR_SIZE);
     struct dir_entry * pde = (struct dir_entry *)fsbuf;
 
-    ped->inode_nr = 1;
+    pde->inode_nr = 1;
     strcpy(pde->name, ".");
 
     // dir entries of '/dev_tty0-2'
     for (int i=0; i < NR_CONSOLES; i++) {
-        ped++;
-        ped->inode_nr = i + 2;
-        sprintf(ped->name, "dev_tty%d", i);
+        pde++;
+        pde->inode_nr = i + 2;
+        sprintf(pde->name, "dev_tty%d", i);
     }
     WR_SECT(ROOT_DEV, sb.n_lst_sect);
 }

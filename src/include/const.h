@@ -21,6 +21,10 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 
 #define STR_DEFAULT_LEN 1024
 
+// min(); max();
+#define max(a,b) ((a) > (b) ? (a) : (b));
+#define min(a,b) ((a) < (b) ? (a) : (b));
+
 /**
  * Color
  */
@@ -97,10 +101,12 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define KB_ACK          0xFA
 
 // task
+#define INVALID_DRIVER  -20
 #define INTERRUPT       -10
 #define TASK_TTY        0
 #define TASK_SYS        1
 #define TASK_HD         2
+#define TASK_FS         3
 #define ANY             (NR_TASKS + NR_PROCS + 10)
 #define NO_TASK         (NR_TASKS + NR_PROCS + 20)
 
@@ -122,15 +128,33 @@ enum msgtype {
     // SYS task
     GET_TICKS,
     // message type for  drivers
-    DEV_OPEN = 1001
+    DEV_OPEN = 1001,
+    DEV_CLOSE,
+    DEV_READ,
+    DEV_WRITE,
+    DEV_IOCTL
 };
 
+#define CNT u.m3.m3i2
+#define REQUEST u.m3.m3i2
+#define PROC_NR u.m3.m3i3
+#define DEVICE u.m3.m3i4
+#define POSITION u.m3.m3l1
+#define BUF     u.m3.m3p2
 #define RETVAL      u.m3.m3i1
 
 
 
+
+
+
+
+#define DIOCTL_GET_GEO 1
+
 // Hard Drive
 #define SECTOR_SIZE     512
+#define SECTOR_BITS     (SECTOR_SIZE * 8)
+#define SECTOR_SIZE_SHIFT   9
 
 // major device numbers
 #define NO_DEV          0
@@ -142,24 +166,51 @@ enum msgtype {
 
 // make device number from major and minor nu,bers
 #define MAJOR_SHIFT     8
-#define MAKE_DEV(a,b)   ((a << MAJOR_SHIFT) & b)
+#define MAKE_DEV(a,b)   ((a << MAJOR_SHIFT) | b)
 
 // separate major and minor numbers from device number
 #define MAJOR(x)        ((x >> MAJOR_SHIFT) & 0xFF)
 #define MINOR(x)        (x & 0xFF)
+
+// device numbers of hard disk
+#define MINOR_hd1a          0x10
+#define MINOR_hd2a          (MINOR_hd1a + NR_SUB_PER_PART)
+
+#define ROOT_DEV            MAKE_DEV(DEV_HD, MINOR_BOOT)
+
+#define INVALID_INODE       0
+#define ROOT_INODE          1
+
 #define MAX_DRIVES      2
 #define NR_PART_PER_DRIVE   4
 #define NR_SUB_PER_PART     16
 #define NR_SUB_PER_DRIVE    (NR_SUB_PER_PART * NR_PART_PER_DRIVE)
-#define NR_PRIN_PER_DRIVE   (NR_PART_PER_DRIVE + 1)
+#define NR_PRIM_PER_DRIVE   (NR_PART_PER_DRIVE + 1)
 
-#define MAX_PRIN            (MAX_DRIVES * NR_PRIN_PER_DRIVE - 1)
+#define MAX_PRIN            (MAX_DRIVES * NR_PRIM_PER_DRIVE - 1)
 #define MAX_SUBPARTITIONS   (NR_SUB_PER_DRIVE * MAX_DRIVES)
 
-#define MINOR_hd1a          0x10
-#define MINOR_hd2a          (MINOR_hd1a + NR_SUB_PER_PART)
+#define P_PRIMARY       0
+#define P_EXTENDED      1
 
-#define ROOT_DEV            MAKE_DEV(DEV_HD, MINOR_ROOT)
+#define ORANGES_PART    0x99
+#define NO_PART         0x00
+#define EXT_PART        0x05
+
+#define NR_FILES        64
+#define NR_FILE_DESC    64
+#define NR_INODE        64
+#define NR_SUPER_BLOCK  8
+
+// INODE::i_mode(sctal, lower 32 bits reserved)
+#define I_TYPE_MASK     0170000
+#define I_REGULAR       0100000
+#define I_BLOCK_SPECIAL 0060000
+#define I_DIRECTORY     0040000
+#define I_CHAR_SPECIAL  0020000
+#define I_NAMED_PIPE    0010000
+
+#define NR_DEFAULT_FILE_SECTS   2048
 
 #endif
 

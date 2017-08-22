@@ -5,6 +5,20 @@
 #ifndef _ORANGES_HD_H_
 #define _ORANGES_HD_H_
 
+struct part_ent {
+    u8 boot_ind;
+    u8 start_head;
+    u8 start_sector;
+    u8 start_cyl;
+    u8 sys_id;
+    u8 end_head;
+    u8 end_sector;
+    u8 end_cyl;
+    u8 start_sect;
+    u8 nr_sects;
+} PARTITION_ENTRY;
+
+
 #define REG_DATA        0x1F0
 #define REG_FEATIRES    0x1F1
 #define REG_ERROR REG_FEATIRES
@@ -42,21 +56,28 @@ struct hd_cmd {
 };
 
 
-#define HD_TIMEOUT      10000
-#define ATA_IDENTIFY    0xEC
-
-// for DEVICE register
-#define MAKE_DEVICE_REG(lba,drv,lba_highest) (((lba) <<  6) | ((drv) << 4 ) | (lba_highest & 0xF) | 0xA0);
 
 struct part_info {
     u32 base;   
     u32 size;
-}
+};
 
 struct hd_info {
     int open_cnt;
     struct part_info    primary[NR_PRIM_PER_DRIVE];
     struct part_info    logical[NR_SUB_PER_DRIVE];
-}
+};
+
+
+// DEFINTIONS
+#define HD_TIMEOUT      10000
+#define PARTITION_TABLE_OFFSET  0x1BE
+#define ATA_IDENTIFY    0xEC
+#define ATA_READ        0x20
+#define ATA_WRITE       0x30
+
+// for DEVICE register
+#define MAKE_DEVICE_REG(lba,drv,lba_highest) (((lba) <<  6) | ((drv) << 4 ) | (lba_highest & 0xF) | 0xA0);
+
 
 #endif
