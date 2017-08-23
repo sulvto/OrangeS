@@ -98,7 +98,6 @@ PRIVATE void init_hd() {
 PRIVATE void hd_open(int device) {
     int drive = DRV_OF_DEV(device);
     assert(drive == 0);
-    
     hd_identify(drive);
 
     if (hd_info[drive].open_cnt++ == 0) {
@@ -189,6 +188,7 @@ PRIVATE void hd_ioctl(MESSAGE * p) {
 }
 
 PRIVATE void get_part_table(int drive, int sect_nr, struct part_ent * entry) {
+
     struct hd_cmd cmd;
     cmd.features = 0;
     cmd.count = 1;
@@ -199,9 +199,8 @@ PRIVATE void get_part_table(int drive, int sect_nr, struct part_ent * entry) {
     cmd.command = ATA_READ;
     hd_cmd_out(&cmd);
     interrupt_wait();
-    
     port_read(REG_DATA, hdbuf, SECTOR_SIZE);
-    memcpy(entry, hdbuf + PARTITION_TABLE_OFFSET, sizeof(struct part_ent) * NR_PRIM_PER_DRIVE);
+    memcpy(entry, hdbuf + PARTITION_TABLE_OFFSET, sizeof(struct part_ent) * NR_PART_PER_DRIVE);
 }
 
 
@@ -281,7 +280,7 @@ PRIVATE void print_hdinfo(struct hd_info * hdi) {
  */
 PRIVATE void hd_identify(int drive) {
     struct hd_cmd cmd;
-    cmd.device - MAKE_DEVICE_REG(0, drive, 0);
+    cmd.device  = MAKE_DEVICE_REG(0, drive, 0);
     cmd.command = ATA_IDENTIFY;
     hd_cmd_out(&cmd);
     interrupt_wait();

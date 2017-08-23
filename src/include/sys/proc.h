@@ -47,6 +47,8 @@ struct proc {
     struct proc * next_sending;
     
     int nr_tty;
+
+    struct file_desc * filp[NR_FILES];
 };
 
 struct task {

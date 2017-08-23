@@ -68,4 +68,10 @@ struct dir_entry {
 #define WR_SECT(dev, sect_nr) rw_sector(DEV_WRITE, dev, (sect_nr) * SECTOR_SIZE, SECTOR_SIZE, TASK_FS, fsbuf);
 
 
+struct file_desc {
+    int             fd_mode;    // R or W
+    int             fd_pos;     // Current position for R/W
+    struct inode*   fd_inode;   // Prt to the i_node
+};
+
 #endif

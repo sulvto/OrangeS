@@ -129,11 +129,10 @@ PUBLIC int get_ticks() {
 
 
 void TestA() {
-    while(1) {
-
-//        printf("<Ticks:%x>",get_ticks());
-//        milli_delay(10);
-    }
+    int fd = open("/blah", O_CREAT);
+    printf("fd: %d\n", fd);
+    close(fd);
+    spin("TestA");
 }
 
 void TestB() {

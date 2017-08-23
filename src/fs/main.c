@@ -25,7 +25,26 @@ PRIVATE void mkfs();
 PUBLIC void task_fs() {
     printl("Task FS begins.\n");
     init_fs();
-    spin("FS");
+
+    while (1) {
+        send_recv(RECEIVE, ANY, &fs_msg);
+        
+        int src = fs_msg.source;
+        pcaller = &proc_table[src];
+        
+        switch (fs_msg.type) {
+            case OPEN:
+                fs_msg.FD = do_open();
+                break;
+            case CLOSE:
+                fs_msg.RETVAL = do_close();
+                break;
+            // TODO
+        }
+
+        fs_msg.type = SYSCALL_RET;
+        send_recv(SEND, src, &fs_msg);
+    }
 }
 
 /**
@@ -38,11 +57,11 @@ PRIVATE void init_fs() {
     driver_msg.DEVICE = MINOR(ROOT_DEV);
     assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     send_recv(BOTH, dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
-
     mkfs();
 }
 
 PRIVATE void mkfs() {
+
     // open the device:hard disk
     MESSAGE driver_msg;
     int bits_per_sect = SECTOR_SIZE * 8;    // 8 bits per byte
