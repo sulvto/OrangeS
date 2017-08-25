@@ -51,13 +51,39 @@ PUBLIC void task_fs() {
  * <Ring 1> Do some preparation.
  */
 PRIVATE void init_fs() {
+    // f_desc_table[]
+    for (int i = 0; i < NR_FILE_DESC; i++) {
+        memset(&f_desc_table[i], 0, sizeof(struct file_desc));
+    }
+
+    // inode_table[]
+    for (int i = 0; i < NR_INODE; i++) {
+        memset(&inode_table[i], 0, sizeof(struct inode));
+    }
+
+    // super_block[]
+    struct super_block * sb = super_block;
+    for (; sb < &super_block[NR_SUPER_BLOCK]; sb++) {
+        sb->sb_dev = NO_DEV;
+    }
+
     // open the device:hard disk
     MESSAGE driver_msg;
     driver_msg.type = DEV_OPEN;
     driver_msg.DEVICE = MINOR(ROOT_DEV);
     assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     send_recv(BOTH, dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
+    
+    // make FS
     mkfs();
+    
+    // load super block of ROOT
+    read_super_block(ROOT_DEV)；
+
+    sb = get_super_block(ROOT_DEV);
+    assert(sb->magic == MAGIC_V1);
+    
+    root_inode = get_inode(ROOT_DEV, ROOT_INODE);
 }
 
 PRIVATE void mkfs() {
