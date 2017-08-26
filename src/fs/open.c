@@ -2,6 +2,18 @@
 // Created by sulvto on 17-8-23.
 //
 
+#include "type.h"
+#include "stdio.h"
+#include "const.h"
+#include "protect.h"
+#include "string.h"
+#include "fs.h"
+#include "proc.h"
+#include "tty.h"
+#include "console.h"
+#include "global.h"
+#include "keyboard.h"
+#include "proto.h"
 
 /**
  * Open a file and return the file descriptor.
@@ -94,6 +106,21 @@ PUBLIC int do_open() {
 
     return fd;
 }
+
+/**
+ * Handle the message CLOSE.
+ *
+ *  @return Zero if success.
+ */
+PUBLIC int do_close() {
+    int fd = fs_mag.FD;
+    put_inode(pcaller->file[fd]->fd_inode);
+    pcaller->filp[fd]->fd_inode = 0;
+    pcaller->filp[fd] = 0;
+
+    return 0;
+}
+
 
 /**
  * Create a file and return it`s inode prt.

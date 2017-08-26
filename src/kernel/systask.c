@@ -2,6 +2,7 @@
 // Created by sulvto on 17-8-17.
 //
 #include "type.h"
+#include "stdio.h"
 #include "const.h"
 #include "protect.h"
 #include "string.h"

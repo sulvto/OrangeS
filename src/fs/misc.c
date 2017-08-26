@@ -2,6 +2,20 @@
 // Created by sulvto on 17-8-25.
 //
 
+#include "type.h"
+#include "stdio.h"
+#include "const.h"
+#include "protect.h"
+#include "string.h"
+#include "fs.h"
+#include "proc.h"
+#include "tty.h"
+#include "console.h"
+#include "global.h"
+#include "keyboard.h"
+#include "proto.h"
+#include "hd.h"
+#include "fs.h"
 
 /**
  * Get the basename from the fullpath.

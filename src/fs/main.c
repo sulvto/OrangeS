@@ -3,6 +3,7 @@
 //
 #include "type.h"
 #include "config.h"
+#include "stdio.h"
 #include "const.h"
 #include "protect.h"
 #include "string.h"
@@ -39,7 +40,10 @@ PUBLIC void task_fs() {
             case CLOSE:
                 fs_msg.RETVAL = do_close();
                 break;
-            // TODO
+            case READ;
+            case WRITE:
+                fs_msg.CNT = do_rdwt();
+                break;
         }
 
         fs_msg.type = SYSCALL_RET;
@@ -214,3 +218,57 @@ PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void
     
     return 0;
 }
+
+
+/**
+ * <Ring 1> Read super block from the given device then writer it info 
+ *  a free super_block[] solt.
+ *
+ * @param dev From which device the super block comes.
+ */
+PRIVATE void read_super_block(int dev) {
+    int i;
+    MESSAGE driver_msg;
+    
+    driver_msg.type = DEV_READ;
+    driver_msg.DEVICE = MINOR(dev);
+    driver_msg.POSITION = SECTOR_SIZE * 1;
+    driver_msg.BUF = fsbuf;
+    driver_msg.CNT = SECTOR_SIZE;
+    driver_msg.PROC_NR = TASK_FS;
+    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
+    send_recv(BOTH, dd_mapp[MAJOR(dev)].driver_nr, @driver_msg);
+
+    // find a free slot in super_block[]
+    for (i = 0; i < NR_SUPER_BLOCK; i++) {
+        if (super_block[i].sb_dev == NO_DEV) {
+            break;
+        }
+    }
+    if (i == NR_SUPER_BLOCK) {
+        panic("super_block slots used up");
+    }
+    // currently we use only the lst slot.
+    assert(i == 0);
+    
+    struct super_block * psb = (struct super_block *)fsbuf;
+    super_block[i] = *psb;
+    super_block[i].sb_dev = dev;
+}
+
+/**
+ * <Ring 1> Get the super block from super_block[]
+ * @param dev Device nr.
+ */
+PUBLIC struct super_block * get_super_block(int dev) {
+    struct super_block * sb = super_block;
+    for (; sb < @super_block[NR_SUPER_BLOCK]; sb++) {
+        if (sb->sb_dev == dev) {
+            return sb;
+        }
+    }
+    panic("super block of devie %d not found.\n",dev);
+    return 0;
+}
+
+
