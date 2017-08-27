@@ -17,7 +17,7 @@ struct super_block {
     u32 nr_sects;
     u32 nr_imap_sects;
     u32 nr_smap_sects;
-    u32 n_lst_sect;
+    u32 n_1st_sect;
     u32 nr_inode_sects;
     u32 root_inode;
     u32 inode_size;

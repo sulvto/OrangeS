@@ -115,7 +115,7 @@ PRIVATE void mkfs() {
     sb.nr_sects         = geo.size;
     sb.nr_imap_sects    = 1;
     sb.nr_smap_sects    = sb.nr_sects / bits_per_sect;
-    sb.n_lst_sect       = 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects + sb.nr_inode_sects;
+    sb.n_1st_sect       = 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects + sb.nr_inode_sects;
     sb.root_inode       = ROOT_INODE;
     sb.inode_size       = INODE_SIZE;
     struct inode x;
@@ -139,7 +139,7 @@ PRIVATE void mkfs() {
             (geo.base + 1 + 1) * 2,
             (geo.base + 1 + 1 + sb.nr_imap_sects)  * 2,
             (geo.base + 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects)  * 2,
-            (geo.base + sb.n_lst_sect) * 2);
+            (geo.base + sb.n_1st_sect) * 2);
     
     // inode map
     memset(fsbuf, 0, SECTOR_SIZE);
@@ -176,7 +176,7 @@ PRIVATE void mkfs() {
     pi->i_mode = I_DIRECTORY;
     pi->i_size = DIR_ENTRY_SIZE * 4;
     
-    pi->i_start_sect = sb.n_lst_sect;
+    pi->i_start_sect = sb.n_1st_sect;
     pi->i_nr_sects = NR_DEFAULT_FILE_SECTS;
     // inode of  '/dev_tty0-2/'
 
@@ -202,7 +202,7 @@ PRIVATE void mkfs() {
         pde->inode_nr = i + 2;
         sprintf(pde->name, "dev_tty%d", i);
     }
-    WR_SECT(ROOT_DEV, sb.n_lst_sect);
+    WR_SECT(ROOT_DEV, sb.n_1st_sect);
 }
 
 PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void* buf) {

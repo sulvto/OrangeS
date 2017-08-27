@@ -227,7 +227,7 @@ PRIVATE int alloc_smap_bit(int dev, int nr_sects_to_alloc) {
                 // loop until a free bit is found
                 if (fsbuf[j] == 0xFF) continue;
                 for (; ((fsbuf[j] >> k) & 1) != 0; k++) {}
-                free_sect_nr = (i * SECTOR_SIZE + j) * 8 + k -1 + sb->n_lst_sect;
+                free_sect_nr = (i * SECTOR_SIZE + j) * 8 + k -1 + sb->n_1st_sect;
             }
             for (; k < 8; k++) {
                 assert(((fsbuf[j] >> k) & 1) == 0);

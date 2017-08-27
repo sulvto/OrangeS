@@ -50,7 +50,7 @@ PUBLIC void spin(char * func_name) {
  */
 PUBLIC void assertion_failure(char *exp, char *file, char *base_file, int line) {
     // error MAG_CH_ASSERT -> '\003'
-    printl("%s  assert(%s) failed: file:%s,base_file: %s, in %d", "MAG_CH_ASSERT", exp, file, base_file, line);
+    printl("%c  assert(%s) failed: file: %s, base_file: %s, line: %d", MAG_CH_ASSERT, exp, file, base_file, line);
 
     spin("assertion_failure()");
     
