@@ -181,7 +181,7 @@ enum msgtype {
 #define NR_SUB_PER_DRIVE    (NR_SUB_PER_PART * NR_PART_PER_DRIVE)
 #define NR_PRIM_PER_DRIVE   (NR_PART_PER_DRIVE + 1)
 
-#define MAX_PRIN            (MAX_DRIVES * NR_PRIM_PER_DRIVE - 1)
+#define MAX_PRIM            (MAX_DRIVES * NR_PRIM_PER_DRIVE - 1)
 #define MAX_SUBPARTITIONS   (NR_SUB_PER_DRIVE * MAX_DRIVES)
 
 #define P_PRIMARY       0

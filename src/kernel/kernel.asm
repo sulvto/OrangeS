@@ -165,10 +165,10 @@ hwint07:                ; Interrupt routine for irq 7 (printer).
 
         ; 置EOI位(master)
         mov al,EOI
-        out INT_M_CTLMASK,al
+        out INT_M_CTL,al
         ; 置EOI位(slave)
         nop
-        out INT_S_CTLMASK,al
+        out INT_S_CTL,al
         sti
 
         ; 中断处理程序 

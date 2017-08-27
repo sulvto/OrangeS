@@ -20,8 +20,8 @@ struct part_ent {
 
 
 #define REG_DATA        0x1F0
-#define REG_FEATIRES    0x1F1
-#define REG_ERROR REG_FEATIRES
+#define REG_FEATURES    0x1F1
+#define REG_ERROR REG_FEATURES
 #define REG_NSECTOR     0x1F2
 #define REG_LBA_LOW     0x1F3
 #define REG_LBA_MID     0x1F4

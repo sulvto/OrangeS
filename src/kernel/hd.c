@@ -34,7 +34,7 @@ PRIVATE u8 hdbuf[SECTOR_SIZE * 2];
 
 PRIVATE struct hd_info hd_info[1];
 
-#define DRV_OF_DEV(dev) (dev <= MAX_PRIN ? dev / NR_PRIM_PER_DRIVE : (dev - MINOR_hd1a) / NR_SUB_PER_DRIVE)
+#define DRV_OF_DEV(dev) (dev <= MAX_PRIM ? dev / NR_PRIM_PER_DRIVE : (dev - MINOR_hd1a) / NR_SUB_PER_DRIVE)
 
 /**
  * Main loop of HD driver.
@@ -133,7 +133,7 @@ PRIVATE void hd_rdwt(MESSAGE * p) {
     assert((pos & 0x1FF) == 0);
     u32 sect_nr = (u32)(pos >> SECTOR_SIZE_SHIFT);
     int logidx = (p->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
-    sect_nr += p->DEVICE < MAX_PRIN ? hd_info[drive].primary[p->DEVICE].base : hd_info[drive].logical[logidx].base;
+    sect_nr += p->DEVICE < MAX_PRIM ? hd_info[drive].primary[p->DEVICE].base : hd_info[drive].logical[logidx].base;
 
     struct hd_cmd cmd;
     cmd.features = 0;
@@ -162,7 +162,7 @@ PRIVATE void hd_rdwt(MESSAGE * p) {
             interrupt_wait();
         }
 
-        bytes_left = SECTOR_SIZE;
+        bytes_left -= SECTOR_SIZE;
         la += SECTOR_SIZE;
     }
 }
@@ -179,7 +179,7 @@ PRIVATE void hd_ioctl(MESSAGE * p) {
 
     if (p->REQUEST == DIOCTL_GET_GEO) {
         void * dst = va2la(p->PROC_NR, p->BUF);
-        void * src = va2la(TASK_HD, device < MAX_PRIN ? &hdi->primary[device] : &hdi->logical[(device - MINOR_hd1a) % NR_SUB_PER_DRIVE]);
+        void * src = va2la(TASK_HD, device < MAX_PRIM ? &hdi->primary[device] : &hdi->logical[(device - MINOR_hd1a) % NR_SUB_PER_DRIVE]);
         phys_copy(dst, src, sizeof(struct part_info));
     } else {
         assert(0);
@@ -235,7 +235,7 @@ PRIVATE void partition(int device, int style) {
         int s = ext_start_sect;
         int nr_lst_sub = (j - 1) * NR_SUB_PER_PART;
         
-        for (int i=0; i < NR_SUB_PER_DRIVE; i++) {
+        for (int i=0; i < NR_SUB_PER_PART; i++) {
             int dev_nr = nr_lst_sub + i;
 
             get_part_table(drive, s, part_tbl);
@@ -332,7 +332,7 @@ PRIVATE void hd_cmd_out(struct hd_cmd* cmd) {
     // Activate the Interrupt Enable (nIEN) bit
     out_byte(REG_DEV_CTRL, 0);
     // Load required parameters in the Command Block Registers
-    out_byte(REG_FEATIRES, cmd->features);
+    out_byte(REG_FEATURES, cmd->features);
     out_byte(REG_NSECTOR, cmd->count);
     out_byte(REG_LBA_LOW, cmd->lba_low);
     out_byte(REG_LBA_MID, cmd->lba_mid);
