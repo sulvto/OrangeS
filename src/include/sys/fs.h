@@ -63,7 +63,7 @@ struct dir_entry {
 
 #define DIR_ENTRY_SIZE sizeof(struct dir_entry)
 
-#define RD_SECT(dev, sect_nr) rw_sector(DEV_READ, dev, (sect_nr) * SECTOR_SIZE, SECTOT_SIZE, TASK_FS, fsbuf);
+#define RD_SECT(dev, sect_nr) rw_sector(DEV_READ, dev, (sect_nr) * SECTOR_SIZE, SECTOR_SIZE, TASK_FS, fsbuf);
 
 #define WR_SECT(dev, sect_nr) rw_sector(DEV_WRITE, dev, (sect_nr) * SECTOR_SIZE, SECTOR_SIZE, TASK_FS, fsbuf);
 

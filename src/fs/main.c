@@ -19,6 +19,7 @@
 
 PRIVATE void init_fs();
 PRIVATE void mkfs();
+PRIVATE void read_super_block(int dev);
 
 /**
  * <Ring 1> The main loop of TASK FS
@@ -40,7 +41,7 @@ PUBLIC void task_fs() {
             case CLOSE:
                 fs_msg.RETVAL = do_close();
                 break;
-            case READ;
+            case READ:
             case WRITE:
                 fs_msg.CNT = do_rdwt();
                 break;
@@ -82,7 +83,7 @@ PRIVATE void init_fs() {
     mkfs();
     
     // load super block of ROOT
-    read_super_block(ROOT_DEV)；
+    read_super_block(ROOT_DEV);
 
     sb = get_super_block(ROOT_DEV);
     assert(sb->magic == MAGIC_V1);
@@ -237,7 +238,7 @@ PRIVATE void read_super_block(int dev) {
     driver_msg.CNT = SECTOR_SIZE;
     driver_msg.PROC_NR = TASK_FS;
     assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
-    send_recv(BOTH, dd_mapp[MAJOR(dev)].driver_nr, @driver_msg);
+    send_recv(BOTH, dd_map[MAJOR(dev)].driver_nr, &driver_msg);
 
     // find a free slot in super_block[]
     for (i = 0; i < NR_SUPER_BLOCK; i++) {
@@ -262,7 +263,7 @@ PRIVATE void read_super_block(int dev) {
  */
 PUBLIC struct super_block * get_super_block(int dev) {
     struct super_block * sb = super_block;
-    for (; sb < @super_block[NR_SUPER_BLOCK]; sb++) {
+    for (; sb < &super_block[NR_SUPER_BLOCK]; sb++) {
         if (sb->sb_dev == dev) {
             return sb;
         }

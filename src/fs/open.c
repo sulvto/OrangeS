@@ -15,6 +15,13 @@
 #include "keyboard.h"
 #include "proto.h"
 
+PRIVATE struct inode* create_file(char * path, int flags);
+PRIVATE int alloc_imap_bit(int dev);
+PRIVATE int alloc_smap_bit(int dev, int nr_sects_to_alloc);
+PRIVATE struct inode * new_inode(int dev, int inode_nr, int start_sect);
+PRIVATE void new_dir_entry(struct inode *dir_inode, int inode_nr, char *filename);
+
+
 /**
  * Open a file and return the file descriptor.
  *
@@ -25,11 +32,11 @@ PUBLIC int do_open() {
     char pathname[MAX_PATH];
     
     // get parameters from the message
-    int flags = fs_mag.FLAGS;       // access mode
-    int name_len = fs_mag.NAME_LEN; // length of filename
-    int src = fs_mag.source;        // caller proc nr.
+    int flags = fs_msg.FLAGS;       // access mode
+    int name_len = fs_msg.NAME_LEN; // length of filename
+    int src = fs_msg.source;        // caller proc nr.
     assert(name_len < MAX_PATH);
-    phys_copy((void*)va2la(TASK_FS, pathname), (void*)va2la(src, fs_mag.PATHNAME), name_len);
+    phys_copy((void*)va2la(TASK_FS, pathname), (void*)va2la(src, fs_msg.PATHNAME), name_len);
     pathname[name_len] = 0;
 
     // find a free slot in PROCESS::filp[]
@@ -113,8 +120,8 @@ PUBLIC int do_open() {
  *  @return Zero if success.
  */
 PUBLIC int do_close() {
-    int fd = fs_mag.FD;
-    put_inode(pcaller->file[fd]->fd_inode);
+    int fd = fs_msg.FD;
+    put_inode(pcaller->filp[fd]->fd_inode);
     pcaller->filp[fd]->fd_inode = 0;
     pcaller->filp[fd] = 0;
 
@@ -234,7 +241,7 @@ PRIVATE int alloc_smap_bit(int dev, int nr_sects_to_alloc) {
             WR_SECT(dev, smap_blko_nr + i);
         }
 
-        if (nr_imap_sects == 0) break;
+        if (nr_sects_to_alloc == 0) break;
     }
 
     assert(nr_sects_to_alloc == 0);
@@ -308,7 +315,7 @@ PRIVATE void new_dir_entry(struct inode *dir_inode, int inode_nr, char *filename
     }
     if (!new_de) {
         new_de = pde;
-        dir_inode->size += DIR_ENTRY_SIZE;
+        dir_inode->i_size += DIR_ENTRY_SIZE;
     }
     new_de->inode_nr = inode_nr;
     strcpy(new_de->name, filename);

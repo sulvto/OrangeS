@@ -15,6 +15,27 @@
 #include "keyboard.h"
 #include "proto.h"
 
+/**
+ * Compare memory areas.
+ * @param s1 The 1st area.
+ * @param s2 The 2st area.
+ * @param n The first n bytes will be compared.
+ */
+PUBLIC void memcmp(const void * s1, const void * s2, int n) {
+    if ((s1 == 0) || (s2 == 0)) {
+        return (s1 - s2);
+    }
+        const char * p1 = (const char *)s1;
+    const char * p2 = (const char *)s2;
+
+    for (int i = 0; i < n; i++, p1++, p2++) {
+        if (*p1 != *p2){
+            return (*p1 - *p2);
+        }
+    }
+    return 0;
+}
+
 PUBLIC void spin(char * func_name) {
     printl("\nspining in %s ...\n", func_name);
     while(1){}

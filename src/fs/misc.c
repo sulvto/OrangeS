@@ -78,7 +78,7 @@ PUBLIC int search_file(char * path) {
     
     int m = 0;
     struct dir_entry * pde;
-    for (i = 0; i < nr_dir_blks； i++) {
+    for (i = 0; i < nr_dir_blks; i++) {
         RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
         pde = (struct dir_entry *)fsbuf;
         for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++, pde++) {
@@ -113,7 +113,7 @@ PUBLIC struct inode * get_inode(int dev, int num) {
     
     struct inode * p;
     struct inode * q = 0;
-    for (p = &inode_table[0]; p < &inode_table[NR_INODES]; p++) {
+    for (p = &inode_table[0]; p < &inode_table[NR_INODE]; p++) {
         if (p->i_cnt) {         // not a free slot
             if ((p->i_dev == dev) && (p->i_num == num)) {
                 // this is the inode we want
@@ -131,7 +131,7 @@ PUBLIC struct inode * get_inode(int dev, int num) {
         panic("the inode table is full");
     }
 
-    q->i_dev = dev
+    q->i_dev = dev;
     q->i_num = num;
     q->i_cnt = 1;
 
@@ -160,8 +160,8 @@ PUBLIC void put_inode(struct inode * pinode) {
 PUBLIC void sync_inode(struct inode * p) {
     struct super_block * sb = get_super_block(p->i_dev);
     int blk_nr = 1 + 1 + sb->nr_imap_sects + sb->nr_smap_sects + ((p->i_num -1) / (SECTOR_SIZE / INODE_SIZE));
-    RD_SECT(p->dev, blk_nr);
-    struct inode * pinode = (struct inode*)((u8*)fsbuf + ((p->num - 1) % (SECTOR_SIZE / INODE_SIZE)) * INODE_SIZE);
+    RD_SECT(p->i_dev, blk_nr);
+    struct inode * pinode = (struct inode*)((u8*)fsbuf + ((p->i_num - 1) % (SECTOR_SIZE / INODE_SIZE)) * INODE_SIZE);
     
     pinode->i_mode = p->i_mode;
     pinode->i_size = p->i_size;
