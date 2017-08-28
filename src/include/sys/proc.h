@@ -55,7 +55,7 @@ struct task {
     task_f  init_eip;
     int     stacksize;
     char    name[32];
-}TASK;
+};
 
 #define proc2pid(x) (x - proc_table)
 

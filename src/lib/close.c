@@ -26,5 +26,5 @@ PUBLIC int close(int fd) {
 
     send_recv(BOTH, TASK_FS, &msg);
 
-    return msg.FD;
+    return msg.RETVAL;
 }

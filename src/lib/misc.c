@@ -18,10 +18,10 @@
 /**
  * Compare memory areas.
  * @param s1 The 1st area.
- * @param s2 The 2st area.
+ * @param s2 The 2nd area.
  * @param n The first n bytes will be compared.
  */
-PUBLIC void memcmp(const void * s1, const void * s2, int n) {
+PUBLIC int memcmp(const void * s1, const void * s2, int n) {
     if ((s1 == 0) || (s2 == 0)) {
         return (s1 - s2);
     }
@@ -37,7 +37,7 @@ PUBLIC void memcmp(const void * s1, const void * s2, int n) {
 }
 
 PUBLIC void spin(char * func_name) {
-    printl("\nspining in %s ...\n", func_name);
+    printl("\nspinning in %s ...\n", func_name);
     while(1){}
 }
 

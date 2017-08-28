@@ -14,8 +14,8 @@ struct part_ent {
     u8 end_head;
     u8 end_sector;
     u8 end_cyl;
-    u8 start_sect;
-    u8 nr_sects;
+    u32 start_sect;
+    u32 nr_sects;
 } PARTITION_ENTRY;
 
 
@@ -40,9 +40,9 @@ struct part_ent {
 
 #define REG_CMD REG_STATUS
 
-#define REG_DEV_CTRL    0x3f6
+#define REG_DEV_CTRL    0x3F6
 #define REG_ALT_STATUS  REG_DEV_CTRL
-#define REG_DEV_ADDR    0x3f7
+#define REG_DRV_ADDR    0x3F7
 
 
 struct hd_cmd {

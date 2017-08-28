@@ -21,7 +21,7 @@ PUBLIC u32 seg2phys(u16 seg);
 
 // klib.c
 PUBLIC void delay(int time);
-PUBLIC void delay_ini(int input);
+PUBLIC void disp_int(int input);
 PUBLIC char * itoa(char * str, int num);
 
 // kernel.asm
@@ -111,9 +111,10 @@ PUBLIC void spin(char * func_name);
 // proc.c
 PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p);
 PUBLIC int sys_printx(int _unused1, int _unused2, char* s, struct proc* p_proc);
+
 // system.asm
 PUBLIC void sys_call();
 
 // 系统调用 - 用户级
 PUBLIC int  sendrec(int function, int src_dest, MESSAGE* p_msg);
-PUBLIC void printx(char* str);
+PUBLIC int printx(char* str);

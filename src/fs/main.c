@@ -97,7 +97,7 @@ PRIVATE void mkfs() {
     MESSAGE driver_msg;
     int bits_per_sect = SECTOR_SIZE * 8;    // 8 bits per byte
     struct part_info geo;
-    driver_msg.type     = DEV_OPEN;
+    driver_msg.type     = DEV_IOCTL;
     driver_msg.DEVICE   = MINOR(ROOT_DEV);
     driver_msg.REQUEST  = DIOCTL_GET_GEO;
     driver_msg.BUF      = &geo;
@@ -114,7 +114,7 @@ PRIVATE void mkfs() {
     sb.nr_inode_sects   = sb.nr_inodes;
     sb.nr_sects         = geo.size;
     sb.nr_imap_sects    = 1;
-    sb.nr_smap_sects    = sb.nr_sects / bits_per_sect;
+    sb.nr_smap_sects    = sb.nr_sects / bits_per_sect + 1;
     sb.n_1st_sect       = 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects + sb.nr_inode_sects;
     sb.root_inode       = ROOT_INODE;
     sb.inode_size       = INODE_SIZE;
@@ -133,7 +133,7 @@ PRIVATE void mkfs() {
     WR_SECT(ROOT_DEV, 1);
 
     printl("devbase: 0x%x00, sb:0x%x00, imap:0x%x00, smap:0x%x00\n"
-           "        inodes:0x%x00, lst_sector:0x%x00\n",
+           "        inodes:0x%x00, 1st_sector:0x%x00\n",
             geo.base * 2,
             (geo.base + 1) * 2,
             (geo.base + 1 + 1) * 2,
@@ -172,7 +172,7 @@ PRIVATE void mkfs() {
 
     // inodes
     memset(fsbuf, 0, SECTOR_SIZE);
-    struct inode * pi = (struct inodes*)fsbuf;
+    struct inode * pi = (struct inode*)fsbuf;
     pi->i_mode = I_DIRECTORY;
     pi->i_size = DIR_ENTRY_SIZE * 4;
     
@@ -249,7 +249,7 @@ PRIVATE void read_super_block(int dev) {
     if (i == NR_SUPER_BLOCK) {
         panic("super_block slots used up");
     }
-    // currently we use only the lst slot.
+    // currently we use only the 1st slot.
     assert(i == 0);
     
     struct super_block * psb = (struct super_block *)fsbuf;
