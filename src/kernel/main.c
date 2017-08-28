@@ -130,9 +130,37 @@ PUBLIC int get_ticks() {
 
 
 void TestA() {
-    int fd = open("/blah", O_CREAT);
-    printf("fd: %d\n", fd);
+    const char filename[] = "blah";
+    const char bufw[] = "abcde";
+    const int rd_bytes = 5;
+    char bufr[rd_bytes];
+
+    assert(rd_bytes <= strlen(bufw));
+
+    // create
+    int fd = open(filename, O_CREAT|O_RDWR);
+    assert(fd != -1);
+    printf("File created.  FD: %d\n", fd);
+
+    // write
+    int n = write(fd, bufw, strlen(bufw));
+    assert(n ==  strlen(bufw));
     close(fd);
+
+    // open
+    fd = open(filename, O_RDWR);
+    assert(fd != -1);
+    printf("File opened.  FD: %d\n", fd);
+
+    // write
+    n = read(fd, bufr, rd_bytes);
+    assert(n ==  rd_bytes);
+    bufr[n] = 0;
+    printf("%d bytes read: %s\n", n, bufr);
+
+    // close
+    close(fd);
+
     spin("TestA");
 }
 
