@@ -6,13 +6,13 @@ ENTRYPOINT	= 0x30400
 ENTRYOFFSET = 0x400
 
 # Programs,flags,etc.
-ASM			= nasm	
+ASM			= nasm
 DASM		= ndisasm
 CC			= gcc
 LD			= ld
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -fno-builtin  -m32
+CFLAGS		= -I include/ -c -fno-builtin  -m32 -std=c99
 LDFLAGS		= -m elf_i386 -s -Ttext $(ENTRYPOINT)
 DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
@@ -59,7 +59,7 @@ kernel/syscall.o : kernel/syscall.asm include/sconst.inc
 
 # gcc -M kernel/start.c -I include // 自动生成依赖关系
 kernel/start.o :kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/string.h \
- include/global.h 
+ include/global.h
 		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/main.o : kernel/main.c include/type.h include/const.h include/protect.h include/string.h include/proc.h include/proto.h include/global.h
