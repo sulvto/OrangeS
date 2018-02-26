@@ -6,13 +6,13 @@ ENTRYPOINT	= 0x30400
 ENTRYOFFSET = 0x400
 
 # Programs,flags,etc.
-ASM			= nasm	
+ASM			= nasm
 DASM		= ndisasm
 CC			= gcc
 LD			= ld
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -I include/sys/ -f elf
-CFLAGS		= -I include/ -I include/sys/ -c -fno-builtin -Wall  -m32
+CFLAGS		= -I include/ -I include/sys/ -c -fno-builtin -Wall  -m32 -std=c99
 LDFLAGS		= -m elf_i386 -s -Ttext $(ENTRYPOINT) -Map krnl.map
 DASMFLAGS	= -D
 
@@ -61,11 +61,11 @@ $(ORANGESKERNEL) : $(OBJS)
 kernel/kernel.o : kernel/kernel.asm
 		$(ASM) $(ASMKFLAGS) -o $@ $<
 
-kernel/syscall.o : kernel/syscall.asm 
+kernel/syscall.o : kernel/syscall.asm
 		$(ASM) $(ASMKFLAGS) -o $@ $<
 
 # gcc -M kernel/start.c -I include // 自动生成依赖关系
-kernel/start.o :kernel/start.c 
+kernel/start.o :kernel/start.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 kernel/main.o : kernel/main.c
