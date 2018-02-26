@@ -6,25 +6,25 @@ ENTRYPOINT	= 0x30400
 ENTRYOFFSET = 0x400
 
 # Programs,flags,etc.
-ASM			= nasm	
+ASM			= nasm
 DASM		= ndisasm
 CC			= gcc
 LD			= ld
 ASMBFLAGS	= -I boot/include/
 ASMKFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -fno-builtin
+CFLAGS		= -I include/ -c -fno-builtin -std=c99
 LDFLAGS		= -m elf_i386 -s -Ttext $(ENTRYPOINT)
 DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
 # This Program
 ORANGESBOOT	  = boot/boot.bin boot/loader.bin
 ORANGESKERNEL = kernel.bin
-OBJS		  = kernel/kernel.o kernel/start.o kernel/i8259.o kernel/protect.o kernel/global.o lib/klib.o lib/kliba.o lib/string.o 
+OBJS		  = kernel/kernel.o kernel/start.o kernel/i8259.o kernel/protect.o kernel/global.o lib/klib.o lib/kliba.o lib/string.o
 DASMOUTPUT	  = kernel.bin.asm
 
 .PHONY : everyting final image clean realclean disasm all buildimg
 
-everyting : $(ORANGESBOOT) $(ORANGESKERNEL) 
+everyting : $(ORANGESBOOT) $(ORANGESKERNEL)
 all : realclean everyting
 final : all clean
 image : final buildimg
