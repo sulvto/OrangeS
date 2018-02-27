@@ -37,8 +37,8 @@ PUBLIC int kernel_main() {
             eflags = 0x1202;    // IF=1 IOPL=1 bit 2 is always 1
             prio = 15;
         }else {
-            // user proc 
-            p_task = user_proc_table + (i - NR_TASKS);                 
+            // user proc
+            p_task = user_proc_table + (i - NR_TASKS);
             privilege = PRIVILEGE_USER;
             rpl = RPL_USER;
             eflags = 0x202;    // IF=1 bit 2 is always 1
@@ -60,16 +60,16 @@ PUBLIC int kernel_main() {
         //  SA_TIL        4           00000000 00000100
         //  RPL_TASK      SA_RPL1     00000000 00000001
         //  SELECTOR_KERNEL_GS                    11011
-        p_proc->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_TASK;            // 11001 
-        p_proc->regs.fs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;       // 1101   
-        p_proc->regs.es = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;       // 1101 
+        p_proc->regs.gs = (SELECTOR_KERNEL_GS & SA_RPL_MASK) | RPL_TASK;            // 11001
+        p_proc->regs.fs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;       // 1101
+        p_proc->regs.es = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;       // 1101
         p_proc->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
         p_proc->regs.eip = (u32)p_task->init_eip;                                              //
-        p_proc->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;        // 111 
+        p_proc->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;        // 111
         p_proc->regs.eflags = 0x1202;                                                // IF = 1,IOPL = 1, bit 2 is always 1.
         p_proc->regs.esp = (u32)p_task_stack;
         p_proc->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
-        
+
         p_proc->nr_tty = 0;
 
         p_proc->p_flags = 0;
@@ -78,10 +78,10 @@ PUBLIC int kernel_main() {
         p_proc->p_sendto = NO_TASK;
         p_proc->has_int_msg = 0;
         p_proc->q_sending = 0;
-        p_proc->next_sending = 0;       
+        p_proc->next_sending = 0;
 
         p_proc->ticks = p_proc->priority = prio;
- 
+
         p_task_stack -= p_task->stacksize;
         p_proc++;
         p_task++;
@@ -112,7 +112,7 @@ PUBLIC void panic(const char *fmt, ...) {
     char buf[256];
 
     va_list arg = (va_list)((char*)&fmt + 4);
-    
+
     i = vsprintf(buf, fmt, arg);
 
     printl("%c !!painc!! %s", MAG_CH_PANIC, buf);
@@ -131,7 +131,7 @@ PUBLIC int get_ticks() {
 
 void TestA() {
     const char filename[] = "blah";
-    const char bufw[] = "abcde";
+    const char bufw[] = "sulvt";
     const int rd_bytes = 5;
     char bufr[rd_bytes];
 

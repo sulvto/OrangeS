@@ -30,10 +30,10 @@ PUBLIC void task_fs() {
 
     while (1) {
         send_recv(RECEIVE, ANY, &fs_msg);
-        
+
         int src = fs_msg.source;
         pcaller = &proc_table[src];
-        
+
         switch (fs_msg.type) {
             case OPEN:
                 fs_msg.FD = do_open();
@@ -78,19 +78,27 @@ PRIVATE void init_fs() {
     driver_msg.DEVICE = MINOR(ROOT_DEV);
     assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     send_recv(BOTH, dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
-    
+
     // make FS
     mkfs();
-    
+
     // load super block of ROOT
     read_super_block(ROOT_DEV);
 
     sb = get_super_block(ROOT_DEV);
     assert(sb->magic == MAGIC_V1);
-    
+
     root_inode = get_inode(ROOT_DEV, ROOT_INODE);
 }
-
+/**
+ * <Ring 1> Make a available FS in the disk. It will
+ *          - Write a super block to sector 1.
+ *          - Create there special files, dev_tty0, dev_tty1, dev_tty2
+ *          - Create the inode map
+ *          - Create the sector map
+ *          - Create the inodes of the files
+ *          - Create '/'. the root directory
+ */
 PRIVATE void mkfs() {
 
     // open the device:hard disk
@@ -140,7 +148,7 @@ PRIVATE void mkfs() {
             (geo.base + 1 + 1 + sb.nr_imap_sects)  * 2,
             (geo.base + 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects)  * 2,
             (geo.base + sb.n_1st_sect) * 2);
-    
+
     // inode map
     memset(fsbuf, 0, SECTOR_SIZE);
     for (int i=0; i < (NR_CONSOLES + 2); i++) {
@@ -148,12 +156,22 @@ PRIVATE void mkfs() {
     }
 
     assert(fsbuf[0] == 0x1F);   // 0001 1111
+                                //   || ||||
+                                //   || |||`--- bit 0 : reserved
+                                //   || ||`---- bit 1 : the first inode,
+                                //   || ||              which indicates '/'
+                                //   || |`----- bit 2 : /dev_tty0
+                                //   || `------ bit 2 : /dev_tty1
+                                //   |`-------- bit 2 : /dev_tty2
+
 
     WR_SECT(ROOT_DEV, 2);
 
     // sector map
     memset(fsbuf, 0, SECTOR_SIZE);
     int nr_sects = NR_DEFAULT_FILE_SECTS + 1;
+    //             ~~~~~~~~~~~~~~~~~~|~~   `-- bit 0 is reserved
+    //                               `-------- for '/'
 
     int i;
     for (i = 0; i < nr_sects / 8; i++) {
@@ -171,11 +189,15 @@ PRIVATE void mkfs() {
     }
 
     // inodes
+    // inodes of '/'
     memset(fsbuf, 0, SECTOR_SIZE);
     struct inode * pi = (struct inode*)fsbuf;
     pi->i_mode = I_DIRECTORY;
-    pi->i_size = DIR_ENTRY_SIZE * 4;
-    
+    pi->i_size = DIR_ENTRY_SIZE * 4; // 4 files:
+                                     // '.',
+                                     // 'dev_tty0', 'dev_tty1', 'dev_tty2'
+
+
     pi->i_start_sect = sb.n_1st_sect;
     pi->i_nr_sects = NR_DEFAULT_FILE_SECTS;
     // inode of  '/dev_tty0-2/'
@@ -205,9 +227,22 @@ PRIVATE void mkfs() {
     WR_SECT(ROOT_DEV, sb.n_1st_sect);
 }
 
+/**
+ *
+ * <Ring 1> R/W a  sector via messageing with the corresponding driver.
+ *
+ * @param io_type DEV_READ or DEV_WRITE
+ * @param dev     device nr
+ * @param pos     Byte offset from/to where to r/w.
+ * @param bytes   r/w count in bytes.
+ * @param proc_nr To whom the buffer belongs.
+ * @param buf     r/w buffer.
+ *
+ * @retrun Zreo if success.
+ */
 PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void* buf) {
     MESSAGE driver_msg;
-    
+
     driver_msg.type = io_type;
     driver_msg.DEVICE = MINOR(dev);
     driver_msg.POSITION = pos;
@@ -216,13 +251,13 @@ PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void
     driver_msg.PROC_NR = proc_nr;
     assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
     send_recv(BOTH, dd_map[MAJOR(dev)].driver_nr, &driver_msg);
-    
+
     return 0;
 }
 
 
 /**
- * <Ring 1> Read super block from the given device then writer it info 
+ * <Ring 1> Read super block from the given device then writer it info
  *  a free super_block[] solt.
  *
  * @param dev From which device the super block comes.
@@ -230,7 +265,7 @@ PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void
 PRIVATE void read_super_block(int dev) {
     int i;
     MESSAGE driver_msg;
-    
+
     driver_msg.type = DEV_READ;
     driver_msg.DEVICE = MINOR(dev);
     driver_msg.POSITION = SECTOR_SIZE * 1;
@@ -251,7 +286,7 @@ PRIVATE void read_super_block(int dev) {
     }
     // currently we use only the 1st slot.
     assert(i == 0);
-    
+
     struct super_block * psb = (struct super_block *)fsbuf;
     super_block[i] = *psb;
     super_block[i].sb_dev = dev;
@@ -271,5 +306,3 @@ PUBLIC struct super_block * get_super_block(int dev) {
     panic("super block of devie %d not found.\n",dev);
     return 0;
 }
-
-

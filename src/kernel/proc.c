@@ -31,6 +31,7 @@ PUBLIC void schedule() {
 
     struct proc *p;
     int greatest_ticks = 0;
+    // 0:false, 1:true
     while (!greatest_ticks) {
         for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
             if (0 == p->p_flags) {
@@ -44,7 +45,7 @@ PUBLIC void schedule() {
 
 
         if (!greatest_ticks) {
-            for (p = &FIRST_PROC; p <= &LAST_PROC; p++) { 
+            for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
                 if (p->p_flags == 0){
                     p->ticks = p->priority;;
                 }
@@ -62,7 +63,7 @@ PUBLIC void schedule() {
  * @param p         The caller proc.
  *
  * @return Zero if success
- *  
+ *
  */
 PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p) {
     assert(k_reenter == 0); // make sure we are not in ring0
@@ -89,7 +90,7 @@ PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p) {
 
 PUBLIC int send_recv(int function, int src_dest, MESSAGE* msg) {
     int ret = 0;
-    
+
     if (function == RECEIVE) {
         memset(msg, 0, sizeof(MESSAGE));
     }
@@ -202,11 +203,11 @@ PRIVATE int deadlock(int src, int dest) {
     return 0;
 }
 
-PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
+PRIVATE int msg_send(struct proc* current, int dest, MESSAGE* m) {
 
     struct proc* sender = current;
     struct proc* p_dest = proc_table + dest;
-    
+
     assert(proc2pid(sender) != dest);
 
     // check for deadlock here
@@ -214,12 +215,12 @@ PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
         panic(">>DEADLOCK<< %s->%s", sender->name, p_dest->name);
     }
 
-    if ((p_dest->p_flags & RECEIVING) && 
+    if ((p_dest->p_flags & RECEIVING) &&
         (p_dest->p_recvfrom == proc2pid(sender) ||
          p_dest->p_recvfrom ==ANY)) {
         assert(p_dest->p_msg);
         assert(m);
-        
+
         phys_copy(va2la(dest, p_dest->p_msg),
                   va2la(proc2pid(sender), m),
                   sizeof(MESSAGE));
@@ -241,7 +242,7 @@ PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
         assert(sender->p_flags == SENDING);
         sender->p_sendto = dest;
         sender->p_msg = m;
-        
+
         if (p_dest->q_sending) {
             // append to the sending queue
             struct proc * p;
@@ -256,13 +257,13 @@ PRIVATE int msg_send(struct proc* current, int dest,MESSAGE* m) {
         sender->next_sending = 0;
 
         block(sender);
-        
+
         assert(sender->p_flags == SENDING);
         assert(sender->p_msg != 0);
         assert(sender->p_recvfrom == NO_TASK);
         assert(sender->p_sendto == dest);
     }
-        
+
     return 0;
 }
 
@@ -273,9 +274,9 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
     struct proc* p_from = 0;
     struct proc* prev = 0;
     int copyok = 0;
-    
+
     assert(proc2pid(p_who_wanna_recv) != src);
-    
+
     if ((p_who_wanna_recv->has_int_msg) && ((src == ANY) || (src == INTERRUPT))) {
         MESSAGE msg;
         reset_msg(&msg);
@@ -283,18 +284,18 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
         msg.type = HARD_INT;
         assert(m);
         phys_copy(va2la(proc2pid(p_who_wanna_recv), m), &msg, sizeof(MESSAGE));
-        
+
         p_who_wanna_recv->has_int_msg = 0;
-        
+
         assert(p_who_wanna_recv->p_flags == 0);
         assert(p_who_wanna_recv->p_msg == 0);
         assert(p_who_wanna_recv->p_sendto == NO_TASK);
         assert(p_who_wanna_recv->has_int_msg == 0);
-        
+
         return 0;
     }
 
- 
+
     if (src == ANY) {
         if (p_who_wanna_recv->q_sending) {
             p_from = p_who_wanna_recv->q_sending;
@@ -312,10 +313,10 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
     } else {
         p_from = &proc_table[src];
 
-        if ((p_from->p_flags & SENDING) && 
+        if ((p_from->p_flags & SENDING) &&
             (p_from->p_sendto == proc2pid(p_who_wanna_recv))) {
             copyok = 1;
-    
+
             struct proc* p = p_who_wanna_recv->q_sending;
             assert(p);
 
@@ -347,7 +348,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
             p_who_wanna_recv->q_sending = p_from->next_sending;
             p_from->next_sending = 0;
         } else {
-            assert(prev);                                            
+            assert(prev);
             prev->next_sending = p_from->next_sending;
             p_from->next_sending = 0;
         }
@@ -357,14 +358,14 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
         phys_copy(va2la(proc2pid(p_who_wanna_recv), m),
                   va2la(proc2pid(p_from), p_from->p_msg),
                   sizeof(MESSAGE));
-        
+
         p_from->p_msg = 0;
         p_from->p_sendto = NO_TASK;
         p_from->p_flags &= ~SENDING;
         unblock(p_from);
     } else {
         p_who_wanna_recv->p_flags |= RECEIVING;
-    
+
         p_who_wanna_recv->p_msg = m;
         if (src == ANY) {
             p_who_wanna_recv->p_recvfrom = ANY;
@@ -380,7 +381,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
         assert(p_who_wanna_recv->p_sendto == NO_TASK);
         assert(p_who_wanna_recv->has_int_msg == 0);
     }
-        
+
     return 0;
 }
 
