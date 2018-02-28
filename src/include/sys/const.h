@@ -112,7 +112,7 @@ enum msgtype {
     // SYS task
     GET_TICKS,
     // FS
-    OPEN, CLOSE, READ, WRITE,
+    OPEN, CLOSE, READ, WRITE, UNLINK,
     // TTY, SYS, FS, MM, etc
     SYSCALL_RET,
 

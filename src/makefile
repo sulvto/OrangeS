@@ -26,6 +26,7 @@ OBJS		  = kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o \
 				kernel/printf.o kernel/vsprintf.o \
 				lib/kliba.o lib/klib.o lib/string.o lib/misc.o \
 				lib/open.o lib/read.o lib/write.o lib/close.o \
+				lib/unlink.o \
 				fs/main.o fs/open.o fs/misc.o fs/read_write.o
 DASMOUTPUT	  = kernel.bin.asm
 
@@ -129,6 +130,9 @@ lib/write.o : lib/write.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 lib/close.o : lib/close.c
+		$(CC) $(CFLAGS) -o $@ $<
+
+lib/unlink.o : lib/unlink.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 fs/main.o: fs/main.c

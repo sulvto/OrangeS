@@ -71,6 +71,9 @@ PUBLIC int do_close();
 // fs/read_write.c
 PUBLIC int do_rdwt();
 
+// fs/link.c
+PUBLIC int do_unlink();
+
 // fs/misc.c
 PUBLIC int strip_path(char * filename, const char * pathname, struct inode** ppinode);
 PUBLIC int search_file(char * path);
@@ -104,6 +107,8 @@ PUBLIC void inform_int(int task_nr);
 
 // lib/misc.c
 PUBLIC void spin(char * func_name);
+PUBLIC int memcmp(const void *s1, const void *s2, int n);
+
 
 // 系统调用相关
 

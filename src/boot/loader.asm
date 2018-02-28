@@ -153,6 +153,15 @@ start:
         add ax,dx
         add ax,DeltaSectorNo
         add bx,[BPB_BytsPerSec]
+        jc  .1                              ; 如果 bx 重新变成0， 说明内核大于 64KB
+        jmp .2
+    .1:
+        push ax
+        mov  ax,es
+        add  ax, 1000h
+        mov  es,ax
+        pop  ax
+    .2:
         jmp goon_loading_file
     file_loaded:
         call KillMotor                      ; 关闭驱动马达
