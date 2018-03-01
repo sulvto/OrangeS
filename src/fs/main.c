@@ -48,10 +48,17 @@ PUBLIC void task_fs() {
             case UNLINK:
                 fs_msg.RETVAL = do_unlink();
                 break;
+            case RESUME_PROC:
+                src = fs_msg.PROC_NR;
+                break;
+
         }
 
-        fs_msg.type = SYSCALL_RET;
-        send_recv(SEND, src, &fs_msg);
+        // reply
+        if (fs_msg.type != SUSPEND_PROC) {
+            fs_msg.type = SYSCALL_RET;
+            send_recv(SEND, src, &fs_msg);
+        }
     }
 }
 

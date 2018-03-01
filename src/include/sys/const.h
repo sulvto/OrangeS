@@ -116,6 +116,8 @@ enum msgtype {
     // TTY, SYS, FS, MM, etc
     SYSCALL_RET,
 
+    RESUME_PROC, SUSPEND_PROC,
+
     // message type for  drivers
     DEV_OPEN = 1001,
     DEV_CLOSE,

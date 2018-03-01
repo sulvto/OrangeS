@@ -21,6 +21,8 @@ PRIVATE void init_tty(TTY* p_tty);
 PRIVATE void tty_do_read(TTY* tty, MESSAGE* msg);
 PRIVATE void tty_do_write(TTY* tty, MESSAGE* msg);
 PRIVATE void put_key(TTY* p_tty,u32 key);
+PRIVATE void tty_dev_read(TTY* tty);
+PRIVATE void tty_dev_write(TTY* tty);
 
 PUBLIC void task_tty() {
     TTY* tty;
@@ -38,10 +40,10 @@ PUBLIC void task_tty() {
             do {
                 tty_dev_read(tty);
                 tty_dev_write(tty);
-            } while (tty.inbuf_count);
+            } while (tty->inbuf_count);
         }
 
-        send_recv(RECEVIE, ANY, &msg);
+        send_recv(RECEIVE, ANY, &msg);
         int src = msg.source;
         assert(src != TASK_TTY);
         TTY* ptty = &tty_table[msg.DEVICE];
@@ -58,7 +60,7 @@ PUBLIC void task_tty() {
             case DEV_WRITE:
                 tty_do_write(ptty, &msg);
                 break;
-            case HEAD_INT:
+            case HARD_INT:
                 /**
                  *  waked up by clock_handler -- a key was just pressed
                  *  @see clock_handler() inform_int()
@@ -160,7 +162,7 @@ PRIVATE void put_key(TTY* p_tty, u32 key) {
  *
  * @param tty Ptr to TTY
  */
-PEIVATE void tty_dev_read(TTY* tty) {
+PRIVATE void tty_dev_read(TTY* tty) {
     if (is_current_console(tty->p_console)) keyboard_read(tty);
 }
 
@@ -171,27 +173,27 @@ PEIVATE void tty_dev_read(TTY* tty) {
  *
  */
 PRIVATE void tty_dev_write(TTY* tty) {
-    while (p_tty->inbuf_count) {
-        char ch = *(p_tty->inbuf_tail);
-        p_tty->inbuf_tail++;
-        if (p_tty->inbuf_tail == p_tty->in_buf + TTY_IN_BYTES) {
-            p_tty->inbuf_tail = p_tty->in_buf;
+    while (tty->inbuf_count) {
+        char ch = *(tty->inbuf_tail);
+        tty->inbuf_tail++;
+        if (tty->inbuf_tail == tty->in_buf + TTY_IN_BYTES) {
+            tty->inbuf_tail = tty->in_buf;
         }
-        p_tty->inbuf_count--;
+        tty->inbuf_count--;
 
         if (tty->tty_left_cnt) {
             if (ch >= ' ' && ch <= '~') {   // printable (see ascii)
-                out_char(p_tty->p_console,ch);
+                out_char(tty->p_console,ch);
                 void* p = tty->tty_req_buf + tty->tty_trans_cnt;
                 phys_copy(p, (void *)va2la(TASK_TTY, &ch), 1);
                 tty->tty_trans_cnt++;
                 tty->tty_left_cnt--;
             } else if (ch == '\b' && tty->tty_trans_cnt) {
-                out_char(p_tty->p_console,ch);
+                out_char(tty->p_console,ch);
                 tty->tty_trans_cnt--;
                 tty->tty_left_cnt++;
             } else if (ch == '\n' || tty->tty_left_cnt == 0) {
-                out_char(p_tty->p_console,ch);
+                out_char(tty->p_console,ch);
                 MESSAGE msg;
                 msg.type = RESUME_PROC;
                 msg.PROC_NR = tty->tty_proc_nr;

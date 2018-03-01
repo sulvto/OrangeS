@@ -38,6 +38,8 @@ PUBLIC void clock_handler(int irq) {
         return;
     }
 
+    if (key_pressed) inform_int(TASK_TTY);
+
     schedule();
 
 }

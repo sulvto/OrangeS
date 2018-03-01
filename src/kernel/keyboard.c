@@ -43,6 +43,8 @@ PUBLIC void keyboard_handler(int irq) {
         }
         kb_in.count++;
     }
+
+    key_pressed = 1;
 }
 
 PUBLIC void init_keyboard() {

@@ -13,7 +13,10 @@ EXTERN struct descriptor    gdt[GDT_SIZE];
 EXTERN u8                   idt_ptr[6];
 EXTERN struct gate          idt[IDT_SIZE];
 
-EXTERN u32          k_reenter; 
+EXTERN u32          k_reenter;
+
+EXTERN u32          key_pressed;
+
 
 EXTERN struct tss       tss;
 EXTERN struct proc*     p_proc_ready;

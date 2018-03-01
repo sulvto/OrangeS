@@ -23,7 +23,7 @@ OBJS		  = kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o \
                 kernel/clock.o kernel/keyboard.o kernel/tty.o kernel/console.o \
                 kernel/i8259.o kernel/global.o kernel/protect.o kernel/proc.o \
                 kernel/systask.o kernel/hd.o \
-				kernel/printf.o kernel/vsprintf.o \
+				lib/printf.o lib/vsprintf.o \
 				lib/kliba.o lib/klib.o lib/string.o lib/misc.o \
 				lib/open.o lib/read.o lib/write.o lib/close.o \
 				lib/unlink.o \
@@ -96,12 +96,6 @@ kernel/global.o : kernel/global.c
 kernel/protect.o : kernel/protect.c
 		$(CC) $(CFLAGS) -o $@ $<
 
-kernel/printf.o: kernel/printf.c
-		$(CC) $(CFLAGS) -o $@ $<
-
-kernel/vsprintf.o: kernel/vsprintf.c
-		$(CC) $(CFLAGS) -o $@ $<
-
 kernel/systask.o : kernel/systask.c
 		$(CC) $(CFLAGS) -o $@ $<
 
@@ -133,6 +127,13 @@ lib/close.o : lib/close.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 lib/unlink.o : lib/unlink.c
+		$(CC) $(CFLAGS) -o $@ $<
+
+
+lib/printf.o: lib/printf.c
+		$(CC) $(CFLAGS) -o $@ $<
+
+lib/vsprintf.o: lib/vsprintf.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 fs/main.o: fs/main.c
