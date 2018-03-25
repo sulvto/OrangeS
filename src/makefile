@@ -27,7 +27,7 @@ OBJS		  = kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o \
 				lib/kliba.o lib/klib.o lib/string.o lib/misc.o \
 				lib/open.o lib/read.o lib/write.o lib/close.o \
 				lib/unlink.o \
-				fs/main.o fs/open.o fs/misc.o fs/read_write.o
+				fs/link.o fs/main.o fs/open.o fs/misc.o fs/read_write.o
 DASMOUTPUT	  = kernel.bin.asm
 
 .PHONY : everything final image clean realclean disasm all buildimg
@@ -146,4 +146,7 @@ fs/read_write.o: fs/read_write.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 fs/misc.o: fs/misc.c
+		$(CC) $(CFLAGS) -o $@ $<
+
+fs/link.o: fs/link.c
 		$(CC) $(CFLAGS) -o $@ $<

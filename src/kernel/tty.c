@@ -17,6 +17,9 @@
 
 #define TTY_FIRST   (tty_table)
 #define TTY_END     (tty_table + NR_CONSOLES)
+
+#define TTY_OUT_BUF_LEN 256
+
 PRIVATE void init_tty(TTY* p_tty);
 PRIVATE void tty_do_read(TTY* tty, MESSAGE* msg);
 PRIVATE void tty_do_write(TTY* tty, MESSAGE* msg);
@@ -69,7 +72,8 @@ PUBLIC void task_tty() {
                 key_pressed = 0;
                 continue;
             default:
-                dump_msg("TTY::unknown msg", &msg);
+                // dump_msg("TTY::unknown msg", &msg);
+                spin("TTY::unknown msg");
                 break;
         }
     }

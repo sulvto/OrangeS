@@ -2,7 +2,6 @@
 // Created by sulvto on 18-2-28.
 //
 
-
 #include "type.h"
 #include "stdio.h"
 #include "const.h"
@@ -23,7 +22,7 @@
  *       We don`t clear the data bytes so the file is recoverable.
  * @return On success, zreo is returned. On error, -1 is returned.
  */
-PULBIC int do_unlink() {
+PUBLIC int do_unlink() {
     char pathname[MAX_PATH];
 
     // get parameters from the message.
@@ -78,7 +77,7 @@ PULBIC int do_unlink() {
     WR_SECT(pin->i_dev, 2);
 
     // free the bit in s-map
-    bit_idx = pin->i_start_sect - sb->n_lst_sect + 1;
+    bit_idx = pin->i_start_sect - sb->n_1st_sect + 1;
     byte_idx = bit_idx / 8;
     int bits_left = pin->i_nr_sects;
     int bits_cnt = (bits_left - (8 - (bit_idx % 8))) / 8;
@@ -147,7 +146,7 @@ PULBIC int do_unlink() {
             if (++m > nr_dir_entries) break;
             if (pde->inode_nr == inode_nr) {
                 // ped->inode_nr = 0;
-                mement(pde, 0, DIR_ENTRY_SIZE);
+                memset(pde, 0, DIR_ENTRY_SIZE);
                 WR_SECT(dir_inode->i_dev, dir_blk0_nr + i);
                 flg = 1;
                 break;
