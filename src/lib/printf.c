@@ -27,6 +27,7 @@ PUBLIC int printl(const char *fmt, ...) {
     va_list arg = (va_list)((char*)(&fmt) + 4);
 
     i = vsprintf(buf, fmt, arg);
+    buf[i] = 0;
     printx(buf);
 
     return i;
