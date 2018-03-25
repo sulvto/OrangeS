@@ -90,7 +90,7 @@ PUBLIC void init_screen(TTY* p_tty);
 
 // printf.c
 PUBLIC int printf(const char *fmt, ...);
-#define printl printf
+PUBLIC int printl(const char *fmt, ...);
 
 // vsprintf.c
 PUBLIC int vsprintf(char *buf, const char *fmt, va_list args);

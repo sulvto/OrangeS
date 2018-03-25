@@ -48,7 +48,6 @@ PUBLIC int kernel_main() {
         strcpy(p_proc->name,p_task->name);
         p_proc->pid = i;
         p_proc->ldt_sel = selector_ldt;
-        p_proc->ldt_sel = SELECTOR_LDT_FIRST;
 
         memcpy(&p_proc->ldts[0],&gdt[SELECTOR_KERNEL_CS >> 3],sizeof(struct descriptor));
         p_proc->ldts[0].attr1 = DA_C | PRIVILEGE_TASK << 5;  // change the DPL
@@ -66,11 +65,11 @@ PUBLIC int kernel_main() {
         p_proc->regs.ds = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
         p_proc->regs.eip = (u32)p_task->init_eip;                                              //
         p_proc->regs.cs = (0 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;        // 111
-        p_proc->regs.eflags = 0x1202;                                                // IF = 1,IOPL = 1, bit 2 is always 1.
+        p_proc->regs.eflags = eflags;                                                // IF = 1,IOPL = 1, bit 2 is always 1.
         p_proc->regs.esp = (u32)p_task_stack;
         p_proc->regs.ss = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_TIL | RPL_TASK;
 
-        p_proc->nr_tty = 0;
+        /// p_proc->nr_tty = 0;
 
         p_proc->p_flags = 0;
         p_proc->p_msg = 0;
@@ -79,6 +78,9 @@ PUBLIC int kernel_main() {
         p_proc->has_int_msg = 0;
         p_proc->q_sending = 0;
         p_proc->next_sending = 0;
+
+	for (int j = 0; j < NR_FILES; j++)
+			p_proc->filp[j] = 0;
 
         p_proc->ticks = p_proc->priority = prio;
 
@@ -89,9 +91,9 @@ PUBLIC int kernel_main() {
     }
 
 
-    proc_table[NR_TASKS + 0].nr_tty = 0;
-    proc_table[NR_TASKS + 1].nr_tty = 1;
-    proc_table[NR_TASKS + 2].nr_tty = 1;
+   //  proc_table[NR_TASKS + 0].nr_tty = 0;
+    // proc_table[NR_TASKS + 1].nr_tty = 1;
+    // proc_table[NR_TASKS + 2].nr_tty = 1;
 
     k_reenter = 0;
     ticks = 0;
@@ -140,7 +142,7 @@ void TestA() {
     // create
     int fd = open(filename, O_CREAT|O_RDWR);
     assert(fd != -1);
-    printf("File created.  FD: %d\n", fd);
+    printl("File created.  FD: %d\n", fd);
 
     // write
     int n = write(fd, bufw, strlen(bufw));
@@ -150,13 +152,13 @@ void TestA() {
     // open
     fd = open(filename, O_RDWR);
     assert(fd != -1);
-    printf("File opened.  FD: %d\n", fd);
+    printl("File opened.  FD: %d\n", fd);
 
     // write
     n = read(fd, bufr, rd_bytes);
     assert(n ==  rd_bytes);
     bufr[n] = 0;
-    printf("%d bytes read: %s\n", n, bufr);
+    printl("%d bytes read: %s\n", n, bufr);
 
     // close
     close(fd);
@@ -165,17 +167,34 @@ void TestA() {
 }
 
 void TestB() {
-    int i=0X1000;
-    while(1) {
-        printf("B.");
-        milli_delay(10);
-    }
+    char tty_name[] = "/dev_tty2";
+
+	int fd_stdin  = open(tty_name, O_RDWR);
+	assert(fd_stdin  == 0);
+	int fd_stdout = open(tty_name, O_RDWR);
+	assert(fd_stdout == 1);
+
+	char rdbuf[128];
+
+	while (1) {
+		printf( "$ ");
+		int r = read(fd_stdin, rdbuf, 70);
+		rdbuf[r] = 0;
+
+		if (strcmp(rdbuf, "hello") == 0)
+			printf( "hello world!\n");
+		else
+			if (rdbuf[0])
+				printf( "{%s}\n", rdbuf);
+	}
+
+	assert(0); /* never arrive here */
 }
 
 void TestC() {
     int i=0X2000;
     while(1) {
-        printf("C.");
+        printl("C.");
         milli_delay(10);
     }
 }
