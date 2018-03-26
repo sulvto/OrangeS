@@ -1,16 +1,18 @@
-BaseOfLoader        equ 09000h              ; LOADER.BIN 被加载到的位置  ---- 段地址
-OffsetOfLoader      equ 0100h               ; LOADER.BIN 被加载到的位置  ---- 偏移地址
-BaseOfLoaderPhyAddr equ BaseOfLoader * 10h  ; LOADER.BIN 被加载到的位置  ---- 物理地址
+KernelEntryPointPhyAddr equ 0x1000
 
-BaseOfKernelFile        equ 08000h          ; KERNEL.BIN 被加载到的位置  ---- 段地址
-OffsetOfKernelFile      equ 0h              ; KERNEL.BIN 被加载到的位置  ---- 偏移地址
+PageDirBase     equ 0x100000 ; 页目录开始地址: 2M
+PageTblBase     equ 0x101000 ; 页表开始地址:   2M + 4K
 
-BaseOfKernelFilePhyAddr equ BaseOfKernelFile * 10h 
-KernelEntryPointPhyAddr equ 030400h
+BaseOfLoader        equ 0x9000              ; LOADER.BIN 被加载到的位置  ---- 段地址
+OffsetOfLoader      equ 0x100               ; LOADER.BIN 被加载到的位置  ---- 偏移地址
+BaseOfLoaderPhyAddr equ BaseOfLoader * 0x10  ; LOADER.BIN 被加载到的位置  ---- 物理地址
+       
 
+KERNEL_FILE_SEG equ 0x7000                        ;  KERNEL.BIN 被加载到的位置  ---- 段地址
+KERNEL_FILE_OFF equ 0                              ;  KERNEL.BIN 被加载到的位置  ---- 偏移地址
+KERNEL_FILE_PHY_ADDR equ KERNEL_FILE_SEG * 0x10
 
-PageDirBase     equ 200000h ; 页目录开始地址: 2M
-PageTblBase     equ 201000h ; 页表开始地址:   2M + 4K
+KERNEL_VALID_SPACE equ  BaseOfLoaderPhyAddr - KERNEL_FILE_PHY_ADDR
 
 ; 
 BOOT_PARAM_ADDR	equ 0x900

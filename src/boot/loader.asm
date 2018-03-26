@@ -67,15 +67,15 @@ start:
         cmp word [wRootDirSizeForLoop],0
         jz no_kernel
         dec word [wRootDirSizeForLoop]
-        mov ax,BaseOfKernelFile
+        mov ax,KERNEL_FILE_SEG
         mov es,ax
-        mov bx,OffsetOfKernelFile
+        mov bx,KERNEL_FILE_OFF
         mov ax,[wSectorNo]
         mov cl,1
         call ReadSector
             
         mov si,KernelFileName               ; ds:si -> "KERNEL.BIN"
-        mov di,OffsetOfKernelFile
+        mov di,KERNEL_FILE_OFF
         cld
         mov dx,10h
     search_kernel:
@@ -125,9 +125,9 @@ start:
         push cx                             ; 保存此 Sector 在 FAT 中的序号
         add cx,ax       
         add cx,DeltaSectorNo                ; cl <- loader.bin 起始扇区号
-        mov ax,BaseOfKernelFile             ; es
-        mov es,ax                           ; es <- BaseOfKernelFile
-        mov bx,OffsetOfKernelFile           ; bx <- OffsetOfKernelFile
+        mov ax,KERNEL_FILE_SEG             ; es
+        mov es,ax                           ; es <- KERNEL_FILE_SEG
+        mov bx,KERNEL_FILE_OFF           ; bx <- KERNEL_FILE_OFF
         mov ax,cx                           ; ax <- Sector 号
 
     goon_loading_file:
@@ -276,7 +276,7 @@ GetFATEntry:
         push es
         push bx
         push ax
-        mov ax,BaseOfKernelFile 
+        mov ax,KERNEL_FILE_SEG 
         sub ax,0100h
         mov es,ax
         pop ax
@@ -352,6 +352,16 @@ PM_START:
 
         ; jmp $
         call InitKernel
+
+        ;; fill in BootParam[]
+        mov dword [BOOT_PARAM_ADDR], BOOT_PARAM_MAGIC  ; MAGIC NUMBER
+        mov eax, [dwMemSize]
+        mov [BOOT_PARAM_ADDR + 4], eax      ; memroy size
+        mov eax, KERNEL_FILE_SEG
+        shl eax, 4
+        add eax, KERNEL_FILE_OFF
+        mov [BOOT_PARAM_ADDR + 8], eax      ; phy-addr of  kernel.bin
+
         jmp SelectorFlatC:KernelEntryPointPhyAddr
 
 ;---------------------------------------------------------------------
@@ -608,17 +618,17 @@ SetupPaging:
 ; 遍历每一个 Program Header, 根据 Program Header 中的信息来确定把什么放到内存，放到什么位置，以及放多少
 InitKernel:
         xor esi,esi
-        mov cx,word [BaseOfKernelFilePhyAddr+2Ch]   ; ecx <- pELFHdr->e_phnum
+        mov cx,word [KERNEL_FILE_PHY_ADDR+2Ch]   ; ecx <- pELFHdr->e_phnum
         movzx ecx,cx    
-        mov esi,[BaseOfKernelFilePhyAddr + 1Ch]     ; esi <- pELFHdr->e_phoff
-        add esi,BaseOfKernelFilePhyAddr
+        mov esi,[KERNEL_FILE_PHY_ADDR + 1Ch]     ; esi <- pELFHdr->e_phoff
+        add esi,KERNEL_FILE_PHY_ADDR
     .begin:
         mov eax,[esi+0]
         cmp eax,0                           ; PT_NULL
         jz .no_action
         push dword [esi+010h]
         mov eax,[esi+04h]
-        add eax,BaseOfKernelFilePhyAddr
+        add eax,KERNEL_FILE_PHY_ADDR
         push eax
         push dword [esi+08h]
         call MemCpy

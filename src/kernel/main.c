@@ -40,7 +40,7 @@ PUBLIC int kernel_main() {
             rpl = RPL_TASK;
             eflags = 0x1202;    // IF=1 IOPL=1 bit 2 is always 1
             prio = 15;
-        }else {
+        } else {
             // user proc
             p_task = user_proc_table + (i - NR_TASKS);
             privilege = PRIVILEGE_USER;
@@ -48,10 +48,10 @@ PUBLIC int kernel_main() {
             eflags = 0x202;    // IF=1 bit 2 is always 1
             prio = 5;
         }
-
+	
         strcpy(p_proc->name, p_task->name);
 		p_proc->p_parent = NO_TASK;
-		
+
 		if (strcmp(p_task->name, "INIT") != 0) {
 			p_proc->ldts[INDEX_LDT_C] 	= gdt[SELECTOR_KERNEL_CS >> 3];  
 			p_proc->ldts[INDEX_LDT_RW] 	= gdt[SELECTOR_KERNEL_DS >> 3];

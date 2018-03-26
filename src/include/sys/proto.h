@@ -29,6 +29,7 @@ PUBLIC char * itoa(char * str, int num);
 PUBLIC void restart();
 
 // main.c
+PUBLIC void Init();
 PUBLIC int get_ticks();
 PUBLIC void TestA();
 PUBLIC void TestB();
