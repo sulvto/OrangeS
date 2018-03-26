@@ -20,6 +20,7 @@
 PRIVATE void init_fs();
 PRIVATE void mkfs();
 PRIVATE void read_super_block(int dev);
+PRIVATE int fs_fork();
 
 /**
  * <Ring 1> The main loop of TASK FS
@@ -51,7 +52,10 @@ PUBLIC void task_fs() {
             case RESUME_PROC:
                 src = fs_msg.PROC_NR;
                 break;
-
+            case FORK:
+                fs_msg.RETVAL = fs_fork();
+                break;
+            
         }
 
         // reply
@@ -315,4 +319,23 @@ PUBLIC struct super_block * get_super_block(int dev) {
     }
     panic("super block of devie %d not found.\n",dev);
     return 0;
+}
+
+
+/**
+ *	Perform the aspects of fork() that relate to files.
+ *
+ * @return Zero if success, otherwise a negative integer.
+ */
+PRIVATE int fs_fork() {
+	struct proc* child  =&proc_table[fs_msg.PID];
+
+	for (int i = 0; i < NR_FILES; i++) {
+		if (child->filp[i]) {
+			child->filp[i]->fd_cnt++;
+			child->filp[i]->fd_inode->i_cnt++;
+		}
+	}
+
+	return 0;
 }

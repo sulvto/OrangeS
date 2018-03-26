@@ -48,6 +48,9 @@ struct proc {
     
     int nr_tty;
 
+    // pid of parent process
+    int p_parent;
+
     struct file_desc * filp[NR_FILES];
 };
 
@@ -61,8 +64,9 @@ struct task {
 
 
 // Number of tasks & procs
-#define NR_TASKS    4
-#define NR_PROCS    3
+#define NR_TASKS    	5
+#define NR_PROCS    	32
+#define NR_NATIVE_PROCS 	4
 #define FIRST_PROC  proc_table[0]
 #define LAST_PROC   proc_table[NR_TASKS + NR_PROCS -1]
 
@@ -75,4 +79,10 @@ struct task {
 #define STACK_SIZE_TESTC        0x8000
 
 #define STACK_SIZE_TOTAL        (STACK_SIZE_TTY + STACK_SIZE_SYS + STACK_SIZE_HD + STACK_SIZE_FS + STACK_SIZE_TESTA + STACK_SIZE_TESTB + STACK_SIZE_TESTC)
+
+
+// All forked proc will use memroy above PROC_BASE
+#define PROC_BASE				0xA00000	// 10 MB
+#define PROC_IMAGE_SIZE_DEFAULT 0x100000	//  1 MB
+#define PROC_ORIGIN_STACK		0x400		//  1 KB
 

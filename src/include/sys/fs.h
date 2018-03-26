@@ -71,6 +71,7 @@ struct dir_entry {
 struct file_desc {
     int             fd_mode;    // R or W
     int             fd_pos;     // Current position for R/W
+    int             fd_cnt;
     struct inode*   fd_inode;   // Prt to the i_node
 };
 

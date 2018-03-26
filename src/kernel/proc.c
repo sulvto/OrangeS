@@ -406,3 +406,29 @@ PUBLIC void inform_int(int task_nr) {
         p->has_int_msg = 1;
     }
 }
+
+/**
+ * dump_msg
+ *
+ */
+PUBLIC void dump_msg(const char * title, MESSAGE* msg) {
+	int packed = 0;
+	printl("{%s}<0x%x>{%ssrc:%s(%d), %stype:%d, %s(0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x)%s}%s",
+					title,
+					(int)msg,
+					packed ? "" : "\n       ",
+					proc_table[msg->source].name,
+					msg->source,
+					packed ? "" : "\n       ",
+					msg->type,
+					packed ? "" : "\n       ",
+					msg->u.m3.m3i1,
+					msg->u.m3.m3i2,
+					msg->u.m3.m3i3,
+					msg->u.m3.m3i4,
+					(int)msg->u.m3.m3p1,
+					(int)msg->u.m3.m3p2,
+					packed ? "" : "\n",
+					packed ? "" : "\n");
+
+}

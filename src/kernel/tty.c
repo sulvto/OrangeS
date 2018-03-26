@@ -79,21 +79,6 @@ PUBLIC void task_tty() {
     }
 }
 
-
-PUBLIC void tty_write(TTY* p_tty, char* buf, int len) {
-    char* p = buf;
-    int i = len;
-    while (i) {
-        out_char(p_tty->p_console,*p++);
-        i--;
-    }
-}
-
-PUBLIC int sys_write(char* buf, int len, struct proc* p_proc) {
-    tty_write(&tty_table[p_proc->nr_tty], buf, len);
-    return 0;
-}
-
 PRIVATE void init_tty(TTY* p_tty) {
     p_tty->inbuf_count = 0;
     p_tty->inbuf_head = p_tty->inbuf_tail = p_tty->in_buf;

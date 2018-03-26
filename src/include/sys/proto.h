@@ -18,6 +18,7 @@ PUBLIC char* strcpy(char* dst, const char* src);
 // protect.c
 PUBLIC void init_prot();
 PUBLIC u32 seg2phys(u16 seg);
+PUBLIC void init_descriptor(struct descriptor * p_desc, u32 base, u32 limit, u16 attribute);
 
 // klib.c
 PUBLIC void delay(int time);
@@ -81,7 +82,7 @@ PUBLIC struct inode * get_inode(int dev, int num);
 PUBLIC void put_inode(struct inode * pinode);
 PUBLIC void sync_inode(struct inode * p);
 
-/* console.c */
+// kernel/console.c
 PUBLIC void out_char(CONSOLE* p_con, char ch);
 PUBLIC int is_current_console(CONSOLE* p_console); 
 PUBLIC void select_console(int nr_console);
@@ -104,11 +105,19 @@ PUBLIC int ldt_seg_linear(struct proc* p, int idx);
 PUBLIC void reset_msg(MESSAGE* m);
 PUBLIC int send_recv(int function,int src_dest, MESSAGE* msg);
 PUBLIC void inform_int(int task_nr);
+PUBLIC void dump_msg(const char * title, MESSAGE* msg);
 
 // lib/misc.c
 PUBLIC void spin(char * func_name);
 PUBLIC int memcmp(const void *s1, const void *s2, int n);
+// lib/fork.c
+PUBLIC int fork();
 
+// mm/forkexit
+PUBLIC int do_fork();
+// mm/main.c
+PUBLIC void task_mm();
+PUBLIC int alloc_mem(int pid, int memsize);
 
 // 系统调用相关
 

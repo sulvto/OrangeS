@@ -57,7 +57,13 @@ typedef struct {
         struct mess2 m2;
         struct mess3 m3;
     } u; 
+
+    int PID;
 } MESSAGE;
 
+struct boot_params {
+	int			mem_size;
+	unsigned char * kernel_file;
+};
 
 #endif

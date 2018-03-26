@@ -33,6 +33,10 @@ extern irq_handler  irq_table[];
 extern TTY          tty_table[];
 extern CONSOLE      console_table[];
 
+// MM
+EXTERN MESSAGE mm_msg;
+EXTERN int memory_size;
+
 // FS
 EXTERN struct file_desc     f_desc_table[NR_FILE_DESC];
 EXTERN struct inode         inode_table[NR_INODE];
