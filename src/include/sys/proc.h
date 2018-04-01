@@ -51,6 +51,9 @@ struct proc {
     // pid of parent process
     int p_parent;
 
+    // for parent
+    int exit_status;
+
     struct file_desc * filp[NR_FILES];
 };
 

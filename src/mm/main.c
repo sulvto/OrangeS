@@ -41,6 +41,10 @@ PUBLIC void task_mm() {
 				do_exit(mm_msg.STATUS);
 				reply = 0;
 				break;
+			case WAIT:
+				do_wait();
+				reply = 0;
+				break;
 			default:
 				dump_msg("MM::unknown msg", &mm_msg);
 				assert(0);
@@ -93,5 +97,16 @@ PUBLIC int alloc_mem(int pid, int memsize) {
 			panic("memory allocation failed. pid:%d", pid);
 
 	return base;
+}
+
+
+/**
+ *
+ * @param pid	Whose memory is to be freed.
+ *
+ * @return Zero id success.
+ */
+PUBLIC int free_mem(int pid) {
+	return 0;
 }
 

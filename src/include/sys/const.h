@@ -55,7 +55,9 @@
 // Process
 #define SENDING         0x02
 #define RECEIVING       0x04
-#define FREE_SLOT      0x20
+#define WAITING         0x08
+#define HANGING         0x10
+#define FREE_SLOT       0x20
 
 // TTY
 #define NR_CONSOLES     3
@@ -92,7 +94,8 @@
 #define TASK_SYS        1
 #define TASK_HD         2
 #define TASK_FS         3
-#define TASK_MM        4
+#define TASK_MM         4
+#define INIT            5
 #define ANY             (NR_TASKS + NR_PROCS + 10)
 #define NO_TASK         (NR_TASKS + NR_PROCS + 20)
 
@@ -119,7 +122,11 @@ enum msgtype {
     // TTY, SYS, FS, MM, etc
     SYSCALL_RET,
 
+    // FS & MM
     RESUME_PROC, SUSPEND_PROC,
+
+    // MM
+    WAIT,
 
     // FS & MM
     FORK, EXIT,

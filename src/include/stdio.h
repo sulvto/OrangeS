@@ -38,3 +38,12 @@ PUBLIC int read(int fd, void *buf, int count);
 
 // lib/write.c
 PUBLIC int write(int fd, const void *buf, int count);
+
+// lib/fork.c
+PUBLIC int fork();
+
+// lib/exit.c
+PUBLIC void exit(int status);
+
+// lib/wait.c
+PUBLIC int wait(int *status);

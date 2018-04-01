@@ -113,8 +113,6 @@ PUBLIC void dump_msg(const char * title, MESSAGE* msg);
 // lib/misc.c
 PUBLIC void spin(char * func_name);
 PUBLIC int memcmp(const void *s1, const void *s2, int n);
-// lib/fork.c
-PUBLIC int fork();
 
 // mm/forkexit
 PUBLIC int do_fork();
@@ -123,6 +121,7 @@ PUBLIC void do_wait();
 // mm/main.c
 PUBLIC void task_mm();
 PUBLIC int alloc_mem(int pid, int memsize);
+PUBLIC int free_mem(int pid);
 
 // 系统调用相关
 

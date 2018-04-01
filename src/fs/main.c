@@ -18,9 +18,13 @@
 
 
 PRIVATE void init_fs();
+
 PRIVATE void mkfs();
+
 PRIVATE void read_super_block(int dev);
+
 PRIVATE int fs_fork();
+
 PRIVATE int fs_exit();
 
 /**
@@ -59,7 +63,11 @@ PUBLIC void task_fs() {
             case EXIT:
                 fs_msg.RETVAL = fs_exit();
                 break;
-            
+
+            default:
+                dump_msg("FS::unknown msg", &fs_msg);
+                assert(0);
+                break;
         }
 
         // reply
@@ -85,7 +93,7 @@ PRIVATE void init_fs() {
     }
 
     // super_block[]
-    struct super_block * sb = super_block;
+    struct super_block *sb = super_block;
     for (; sb < &super_block[NR_SUPER_BLOCK]; sb++) {
         sb->sb_dev = NO_DEV;
     }
@@ -108,10 +116,11 @@ PRIVATE void init_fs() {
 
     root_inode = get_inode(ROOT_DEV, ROOT_INODE);
 }
+
 /**
  * <Ring 1> Make a available FS in the disk. It will
  *          - Write a super block to sector 1.
- *          - Create there special files, dev_tty0, dev_tty1, dev_tty2
+ *          - Create three special files, dev_tty0, dev_tty1, dev_tty2
  *          - Create the inode map
  *          - Create the sector map
  *          - Create the inodes of the files
@@ -123,11 +132,11 @@ PRIVATE void mkfs() {
     MESSAGE driver_msg;
     int bits_per_sect = SECTOR_SIZE * 8;    // 8 bits per byte
     struct part_info geo;
-    driver_msg.type     = DEV_IOCTL;
-    driver_msg.DEVICE   = MINOR(ROOT_DEV);
-    driver_msg.REQUEST  = DIOCTL_GET_GEO;
-    driver_msg.BUF      = &geo;
-    driver_msg.PROC_NR  = TASK_FS;
+    driver_msg.type = DEV_IOCTL;
+    driver_msg.DEVICE = MINOR(ROOT_DEV);
+    driver_msg.REQUEST = DIOCTL_GET_GEO;
+    driver_msg.BUF = &geo;
+    driver_msg.PROC_NR = TASK_FS;
     assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     send_recv(BOTH, dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
 
@@ -135,7 +144,7 @@ PRIVATE void mkfs() {
 
     // super block
     struct super_block sb;
-    sb.magic            =  MAGIC_V1;
+    sb.magic            = MAGIC_V1;
     sb.nr_inodes        = bits_per_sect;
     sb.nr_inode_sects   = sb.nr_inodes;
     sb.nr_sects         = geo.size;
@@ -145,12 +154,12 @@ PRIVATE void mkfs() {
     sb.root_inode       = ROOT_INODE;
     sb.inode_size       = INODE_SIZE;
     struct inode x;
-    sb.inode_isize_off  = (int)&x.i_size - (int)&x;
-    sb.inode_start_off  = (int)&x.i_start_sect - (int)&x;
+    sb.inode_isize_off  = (int) &x.i_size - (int) &x;
+    sb.inode_start_off  = (int) &x.i_start_sect - (int) &x;
     sb.dir_ent_size     = DIR_ENTRY_SIZE;
     struct dir_entry de;
-    sb.dir_ent_inode_off = (int)&de.inode_nr - (int)&de;
-    sb.dir_ent_fname_off = (int)&de.name - (int)&de;
+    sb.dir_ent_inode_off = (int) &de.inode_nr - (int) &de;
+    sb.dir_ent_fname_off = (int) &de.name - (int) &de;
 
     memset(fsbuf, 0x90, SECTOR_SIZE);
     memcpy(fsbuf, &sb, SUPER_BLOCK_SIZE);
@@ -159,17 +168,17 @@ PRIVATE void mkfs() {
     WR_SECT(ROOT_DEV, 1);
 
     printl("devbase: 0x%x00, sb:0x%x00, imap:0x%x00, smap:0x%x00\n"
-           "        inodes:0x%x00, 1st_sector:0x%x00\n",
-            geo.base * 2,
-            (geo.base + 1) * 2,
-            (geo.base + 1 + 1) * 2,
-            (geo.base + 1 + 1 + sb.nr_imap_sects)  * 2,
-            (geo.base + 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects)  * 2,
-            (geo.base + sb.n_1st_sect) * 2);
+                   "        inodes:0x%x00, 1st_sector:0x%x00\n",
+           geo.base * 2,
+           (geo.base + 1) * 2,
+           (geo.base + 1 + 1) * 2,
+           (geo.base + 1 + 1 + sb.nr_imap_sects) * 2,
+           (geo.base + 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects) * 2,
+           (geo.base + sb.n_1st_sect) * 2);
 
     // inode map
     memset(fsbuf, 0, SECTOR_SIZE);
-    for (int i=0; i < (NR_CONSOLES + 2); i++) {
+    for (int i = 0; i < (NR_CONSOLES + 2); i++) {
         fsbuf[0] |= 1 << i;
     }
 
@@ -207,9 +216,9 @@ PRIVATE void mkfs() {
     }
 
     // inodes
-    // inodes of '/'
+    // inode of '/'
     memset(fsbuf, 0, SECTOR_SIZE);
-    struct inode * pi = (struct inode*)fsbuf;
+    struct inode *pi = (struct inode *) fsbuf;
     pi->i_mode = I_DIRECTORY;
     pi->i_size = DIR_ENTRY_SIZE * 4; // 4 files:
                                      // '.',
@@ -221,7 +230,7 @@ PRIVATE void mkfs() {
     // inode of  '/dev_tty0-2/'
 
     for (i = 0; i < NR_CONSOLES; i++) {
-        pi = (struct inode*)(fsbuf + (INODE_SIZE * (i + 1)));
+        pi = (struct inode *) (fsbuf + (INODE_SIZE * (i + 1)));
         pi->i_mode = I_CHAR_SPECIAL;
         pi->i_size = 0;
         pi->i_start_sect = MAKE_DEV(DEV_CHAR_TTY, i);
@@ -231,13 +240,13 @@ PRIVATE void mkfs() {
 
     // '/' root
     memset(fsbuf, 0, SECTOR_SIZE);
-    struct dir_entry * pde = (struct dir_entry *)fsbuf;
+    struct dir_entry *pde = (struct dir_entry *) fsbuf;
 
     pde->inode_nr = 1;
     strcpy(pde->name, ".");
 
     // dir entries of '/dev_tty0-2'
-    for (int i=0; i < NR_CONSOLES; i++) {
+    for (int i = 0; i < NR_CONSOLES; i++) {
         pde++;
         pde->inode_nr = i + 2;
         sprintf(pde->name, "dev_tty%d", i);
@@ -247,7 +256,7 @@ PRIVATE void mkfs() {
 
 /**
  *
- * <Ring 1> R/W a  sector via messageing with the corresponding driver.
+ * <Ring 1> R/W a sector via messaging with the corresponding driver.
  *
  * @param io_type DEV_READ or DEV_WRITE
  * @param dev     device nr
@@ -258,7 +267,7 @@ PRIVATE void mkfs() {
  *
  * @retrun Zreo if success.
  */
-PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void* buf) {
+PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void *buf) {
     MESSAGE driver_msg;
 
     driver_msg.type = io_type;
@@ -275,8 +284,8 @@ PUBLIC int rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void
 
 
 /**
- * <Ring 1> Read super block from the given device then writer it info
- *  a free super_block[] solt.
+ * <Ring 1> Read super block from the given device then write it info
+ *  a free super_block[] slot.
  *
  * @param dev From which device the super block comes.
  */
@@ -305,7 +314,7 @@ PRIVATE void read_super_block(int dev) {
     // currently we use only the 1st slot.
     assert(i == 0);
 
-    struct super_block * psb = (struct super_block *)fsbuf;
+    struct super_block *psb = (struct super_block *) fsbuf;
     super_block[i] = *psb;
     super_block[i].sb_dev = dev;
 }
@@ -314,14 +323,14 @@ PRIVATE void read_super_block(int dev) {
  * <Ring 1> Get the super block from super_block[]
  * @param dev Device nr.
  */
-PUBLIC struct super_block * get_super_block(int dev) {
-    struct super_block * sb = super_block;
+PUBLIC struct super_block *get_super_block(int dev) {
+    struct super_block *sb = super_block;
     for (; sb < &super_block[NR_SUPER_BLOCK]; sb++) {
         if (sb->sb_dev == dev) {
             return sb;
         }
     }
-    panic("super block of devie %d not found.\n",dev);
+    panic("super block of devie %d not found.\n", dev);
     return 0;
 }
 
@@ -332,19 +341,37 @@ PUBLIC struct super_block * get_super_block(int dev) {
  * @return Zero if success, otherwise a negative integer.
  */
 PRIVATE int fs_fork() {
-	struct proc* child  =&proc_table[fs_msg.PID];
+    struct proc *child = &proc_table[fs_msg.PID];
 
-	for (int i = 0; i < NR_FILES; i++) {
-		if (child->filp[i]) {
-			child->filp[i]->fd_cnt++;
-			child->filp[i]->fd_inode->i_cnt++;
-		}
-	}
+    for (int i = 0; i < NR_FILES; i++) {
+        if (child->filp[i]) {
+            child->filp[i]->fd_cnt++;
+            child->filp[i]->fd_inode->i_cnt++;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
+/**
+ * Perform the aspects of exit() that relate to files.
+ *
+ * @return Zero if success.
+ *
+ */
 PRIVATE int fs_exit() {
-    printl("[FS] fs_exit");
-    return -1;
+    struct proc *p_proc = &proc_table[fs_msg.PID];
+
+    for (int i = 0; i < NR_FILES; i++) {
+        if (p_proc->filp[i]) {
+            // release the inode.
+            p_proc->filp[i]->fd_inode->i_cnt--;
+            // release the file desc slot
+            if (--p_proc->filp[i]->fd_cnt == 0) {
+                p_proc->filp[i]->fd_inode = 0;
+            }
+            p_proc->filp[i] = 0;
+        }
+    }
+    return 0;
 }

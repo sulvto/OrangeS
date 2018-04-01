@@ -170,11 +170,17 @@ void Init() {
 	// parent process
 	if (pid != 0) {
 		printf("parent is running, child pid:%d\n", pid);
-		spin("parent");
 	} else {
 		printf("child is running, pid:%d\n", getpid());
-		spin("child");
+		exit(123);
 	}
+
+    while (1) {
+        int s;
+        int child = wait(&s);
+        // TODO use printf() ??
+        printl("child (%d) exited with status: %d\n", child, s);
+    }
 
 }
 
