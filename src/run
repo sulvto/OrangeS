@@ -2,5 +2,8 @@
 
 make image
 
-bochs -q -f ../.bochsrc
-
+if [ "$?" == "0" ]; then
+   bochs -q -f ../.bochsrc
+else
+   echo "Error!"
+fi

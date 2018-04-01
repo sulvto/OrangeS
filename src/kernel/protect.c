@@ -129,21 +129,22 @@ PUBLIC void init_prot() {
     memset(&tss,0,sizeof(tss));
     tss.ss0 = SELECTOR_KERNEL_DS;
     init_descriptor(&gdt[INDEX_TSS],
-            vir2phys(seg2phys(SELECTOR_KERNEL_DS), &tss),
+            makelinear(SELECTOR_KERNEL_DS, &tss),
             sizeof(tss) - 1,
             DA_386TSS);
     tss.iobase = sizeof(tss);   // 没有I/O许可位图
 
     // 填充 GDT 中进程的 LDT 描述符
-    struct proc* p_proc = proc_table;
-    u16 selector_ldt = INDEX_LDT_FIRST << 3;
+
     for (int i = 0; i < (NR_TASKS + NR_PROCS); i++) {
-        init_descriptor(&gdt[selector_ldt >> 3],
-                vir2phys(seg2phys(SELECTOR_KERNEL_DS), proc_table[i].ldts),
+        memset(&proc_table[i], 0, sizeof(struct proc));
+
+        proc_table[i].ldt_sel = SELECTOR_LDT_FIRST + (i << 3);
+        assert(INDEX_LDT_FIRST + i < GDT_SIZE);
+        init_descriptor(&gdt[INDEX_LDT_FIRST + i],
+                makelinear(SELECTOR_KERNEL_DS, proc_table[i].ldts),
                 LDT_SIZE * sizeof(struct descriptor) - 1,
                 DA_LDT);
-        p_proc++;
-        selector_ldt += 1 << 3;
     }
 }
 
@@ -169,8 +170,8 @@ PRIVATE void init_idt_desc(unsigned char vector, u8 desc_type,
  *
  */
 PUBLIC u32 seg2phys(u16 seg) {
-    struct descriptor * p_desc  = &gdt[seg >> 3];
-    return (p_desc->base_high << 24 | p_desc->base_mid << 16 | p_desc->base_low);
+    struct descriptor * p_dest  = &gdt[seg >> 3];
+    return (p_dest->base_high << 24 | p_dest->base_mid << 16 | p_dest->base_low);
 }
 
 

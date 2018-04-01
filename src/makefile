@@ -2,7 +2,9 @@
 # Makefile of Orange`S
 #
 
-ENTRYPOINT	= 0x30400
+# Entry point of Orange'S
+# It must have the same value with 'KernelEntryPointPhyAddr' in load.inc!
+ENTRYPOINT	= 0x1000
 ENTRYOFFSET = 0x400
 
 # Programs,flags,etc.

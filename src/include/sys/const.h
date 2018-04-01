@@ -96,6 +96,7 @@
 #define ANY             (NR_TASKS + NR_PROCS + 10)
 #define NO_TASK         (NR_TASKS + NR_PROCS + 20)
 
+#define MAX_TICKS       0x7FFFABCD
 
 #define NR_SYS_CALL     3
 

@@ -252,9 +252,9 @@ PUBLIC int sys_printx(int _unusedl, int _unused2, char* s, struct proc* p_proc) 
 
     if (k_reenter == 0) {
         p = va2la(proc2pid(p_proc), s);
-    }else if (k_reenter > 0) {
+    } else if (k_reenter > 0) {
         p = s;
-    }else {
+    } else {
         p = reenter_err;
     }
 

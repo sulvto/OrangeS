@@ -291,12 +291,12 @@ save:
         push fs
         push gs
     
-        mov esi,edx     ; 保存 edx
+        mov esi, edx     ; 保存 edx
 
-        mov dx,ss
-        mov ds,dx
-        mov es,dx
-        mov fs,dx
+        mov dx, ss
+        mov ds, dx
+        mov es, dx
+        mov fs, dx
 
         mov edx,esi     ; 恢复 edx
 
@@ -308,7 +308,7 @@ save:
         jne .1
 
         mov esp,StackTop
-        
+
         push restart
         jmp [esi + RETADR - P_STACKBASE]
     .1:
@@ -322,6 +322,7 @@ save:
 ; restart
 ;
 restart:
+
         mov esp,[p_proc_ready]
         lldt    [esp+P_LDT_SEL]
         lea eax,[esp+P_STACKTOP]

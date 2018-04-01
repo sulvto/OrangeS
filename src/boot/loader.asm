@@ -118,8 +118,15 @@ start:
         push eax
         mov eax,[es:di + 01Ch]
         mov dword [dwKernelSize],eax
+        cmp eax, KERNEL_VALID_SPACE
+        ja .1
         pop eax
-
+        jmp .2
+    .1:
+        mov dh, 3
+        call DispStrRealMode
+        jmp $
+    .2:
         add di,01Ah                         ; di -> 首Sector
         mov cx,word [es:di]
         push cx                             ; 保存此 Sector 在 FAT 中的序号
@@ -165,7 +172,17 @@ start:
         jmp goon_loading_file
     file_loaded:
         call KillMotor                      ; 关闭驱动马达
-    
+
+    ; TODO ??????????
+   ;     xor ax, ax
+   ;     mov es, ax
+   ;     mov ax, 0201h
+;
+   ;     mov cx, 1
+   ;     mov dx, 80h
+   ;     mov bx, 500h
+   ;     int 13h
+
         mov dh,1                            ; "Ready."
         call DispStrRealMode
        
@@ -208,7 +225,8 @@ MessageLength           equ 9
 LoadMessage:            db  "[Loading]"
 Message1                db  "Ready.   "
 Message2                db  "No Kernel"
-Message3                db  "TEST     "
+Message3                db  "Too Large"
+Message4                db  "Testing  "
 ;=====================================================================
 
 
@@ -339,9 +357,9 @@ PM_START:
         mov ss,ax
         mov esp,TopOfStack
 
-        push szMemChkTitle
-        call DispStr
-        add esp,4
+        ; push szMemChkTitle
+        ; call DispStr
+        ; add esp,4
         
         call DispMemInfo
         call SetupPaging
@@ -362,6 +380,8 @@ PM_START:
         add eax, KERNEL_FILE_OFF
         mov [BOOT_PARAM_ADDR + 8], eax      ; phy-addr of  kernel.bin
 
+
+        ; 正式进入内核
         jmp SelectorFlatC:KernelEntryPointPhyAddr
 
 ;---------------------------------------------------------------------
@@ -523,7 +543,11 @@ DispMemInfo:
         push esi
         push edi
         push ecx
-    
+
+        push szMemChkTitle
+        call DispStr
+        add esp,4
+
         mov esi,MemChkBuf
         mov ecx,[dwMCRNumber]
     .loop:
@@ -650,6 +674,7 @@ ALIGN   32
 DATA:
 ; 实模式下使用
 ; 字符串
+_testString:        db "Testing!",0Ah,0
 _szMemChkTitle:     db "BaseAddrL BaseAddrH LengthLow LengthHigh Type",0Ah,0
 _szRAMSize:         db "RAM size:",0
 _szReturn:          db 0Ah,0
@@ -667,6 +692,7 @@ _ARDStruct:
 _MemChkBuf:    times 256 db 0
 
 ; 保护模式下使用这些符号
+testString              equ BaseOfLoaderPhyAddr + _testString
 szMemChkTitle           equ BaseOfLoaderPhyAddr + _szMemChkTitle   
 szRAMSize               equ BaseOfLoaderPhyAddr + _szRAMSize      
 szReturn                equ BaseOfLoaderPhyAddr + _szReturn       

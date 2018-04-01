@@ -26,9 +26,13 @@ PUBLIC void init_clock() {
 
 PUBLIC void clock_handler(int irq) {
 
-    ticks++;
+    if (++ticks >= MAX_TICKS) {
+        ticks = 0;
+    }
 
-    p_proc_ready->ticks--;
+    if (p_proc_ready->ticks) p_proc_ready->ticks--;
+
+    if (key_pressed) inform_int(TASK_TTY);
 
     if (k_reenter != 0) {
         return;
@@ -37,8 +41,6 @@ PUBLIC void clock_handler(int irq) {
     if (p_proc_ready->ticks > 0) {
         return;
     }
-
-    if (key_pressed) inform_int(TASK_TTY);
 
     schedule();
 
