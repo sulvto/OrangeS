@@ -51,7 +51,7 @@ PUBLIC int do_open() {
         panic("filp[] is full (PID:%d)", proc2pid(pcaller));
     }
     
-    // find a free solt in f_desc_table[]
+    // find a free slot in f_desc_table[]
     for (i = 0; i < NR_FILE_DESC; i++) {
         if (f_desc_table[i].fd_inode == 0) {
             break;

@@ -48,7 +48,7 @@ PUBLIC int kernel_main() {
             eflags = 0x202;    // IF=1 bit 2 is always 1
             prio = 5;
         }
-	
+
         strcpy(p_proc->name, p_task->name);
 		p_proc->p_parent = NO_TASK;
 
@@ -158,19 +158,22 @@ PUBLIC int get_ticks() {
  *
  */
 void Init() {
-	int fd_stdin = open("/dev_tty0", O_RDWR);
+
+    int fd_stdin = open("/dev_tty0", O_RDWR);
 	assert(fd_stdin == 0);
 	int fd_stdout = open("/dev_tty0", O_RDWR);
     assert(fd_stdout == 1);
 
-	printf("Init() is running ...\n");
+	printf("Init(PID: %d) is running ...\n", getpid());
 
 	int pid = fork();
 
 	// parent process
 	if (pid != 0) {
-		printf("parent is running, child pid:%d\n", pid);
-	} else {
+		printf("parent(PID: %d) is running, child pid:%d\n", getpid(), pid);
+	}
+    // child process
+    else {
 		printf("child is running, pid:%d\n", getpid());
 		exit(123);
 	}
@@ -179,19 +182,23 @@ void Init() {
         int s;
         int child = wait(&s);
         // TODO use printf() ??
-        printl("child (%d) exited with status: %d\n", child, s);
+        printl("PID: %d, child (%d) exited with status: %d\n", getpid(), child, s);
     }
 
 }
 
 void TestA() {
+    printl("TestA(PID: %d) is running ...\n", getpid());
+
     for (; ;);
 }
 
 void TestB() {
+    printl("TestB(PID: %d) is running ...\n", getpid());
     for (; ;);
 }
 
 void TestC() {
+    printl("TestC(PID: %d) is running ...\n", getpid());
     for (; ;);
 }

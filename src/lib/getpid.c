@@ -19,7 +19,7 @@
  *
  * @return The PID.
  */
-PUBLIC void getpid() {
+PUBLIC int getpid() {
 	MESSAGE msg;
 	msg.type = GET_PID;
 

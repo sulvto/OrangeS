@@ -17,7 +17,7 @@
 
 
 /**
- * Terminate the current process.
+ * Wait for the child process to terminate.
  *
  * @param status    The value returned from the child.
  *

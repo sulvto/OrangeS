@@ -39,6 +39,9 @@ PUBLIC int read(int fd, void *buf, int count);
 // lib/write.c
 PUBLIC int write(int fd, const void *buf, int count);
 
+/* lib/getpid.c */
+PUBLIC int getpid();
+
 // lib/fork.c
 PUBLIC int fork();
 

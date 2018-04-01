@@ -37,7 +37,7 @@ PUBLIC int do_fork() {
     int child_pid = i;
     assert(p == &proc_table[child_pid]);
     assert(child_pid >= NR_TASKS + NR_NATIVE_PROCS);
-    if (i == NR_TASKS + NR_PROCS)    // no free solt
+    if (i == NR_TASKS + NR_PROCS)    // no free slot
         return -1;
     assert(i < NR_TASKS + NR_PROCS);
 
