@@ -5,6 +5,7 @@
 #define _ORANGES_TTY_H_
 
 #define TTY_IN_BYTES    256         // tty input queue size
+#define TTY_OUT_BUF_LEN 2
 
 struct  s_console;
 

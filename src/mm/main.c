@@ -3,6 +3,7 @@
 //
 
 #include    "type.h"
+#include    "config.h"
 #include    "stdio.h"
 #include    "const.h"
 #include    "protect.h"
@@ -12,10 +13,10 @@
 #include    "tty.h"
 #include    "console.h"
 #include    "global.h"
+#include    "keyboard.h"
 #include    "proto.h"
 
-PRIVATE int fs_fork();
-PUBLIC int init_mm();
+PRIVATE void init_mm();
 
 /**
  * <Ring 1> The main loop of TASK MM.
@@ -25,6 +26,7 @@ PUBLIC void task_mm() {
 	init_mm();
 
 	while (1) {
+
 		send_recv(RECEIVE, ANY, &mm_msg);
 		int src = mm_msg.source;
 		int reply = 1;
@@ -34,6 +36,10 @@ PUBLIC void task_mm() {
 		switch (msgtype) {
 			case FORK:
 				mm_msg.RETVAL = do_fork();
+				break;
+			case EXIT:
+				do_exit(mm_msg.STATUS);
+				reply = 0;
 				break;
 			default:
 				dump_msg("MM::unknown msg", &mm_msg);
@@ -54,9 +60,9 @@ PUBLIC void task_mm() {
  *
  *
  */
-PUBLIC int init_mm() {
+PRIVATE void init_mm() {
 	struct boot_params bp;
-	get_kernel_map(&bp);
+	get_boot_params(&bp);
 
 	memory_size = bp.mem_size;
 
@@ -67,7 +73,7 @@ PUBLIC int init_mm() {
 /**
  * Allocate a memory block for a proc.
  *
- * @param pid 		Which proc the memroy is for.
+ * @param pid 		Which proc the memory is for.
  * @param memsize	How many bytes is needed.
  *
  * @return 	The base of the memory just allocated.
@@ -76,7 +82,7 @@ PUBLIC int alloc_mem(int pid, int memsize) {
 	assert(pid >= (NR_TASKS + NR_NATIVE_PROCS));
 
 	if (memsize > PROC_IMAGE_SIZE_DEFAULT) {
-		panic("unsupported memory request: %d (should be less then %d)",
+		panic("unsupported memory request: %d (should be less than %d)",
 						memsize,
 						PROC_IMAGE_SIZE_DEFAULT);
 	}
@@ -84,7 +90,7 @@ PUBLIC int alloc_mem(int pid, int memsize) {
 	int base = PROC_BASE + (pid - (NR_TASKS + NR_NATIVE_PROCS)) * PROC_IMAGE_SIZE_DEFAULT;
 
 	if (base + memsize >= memory_size)
-			panic("memroy allocation failed. pid:%d", pid);
+			panic("memory allocation failed. pid:%d", pid);
 
 	return base;
 }

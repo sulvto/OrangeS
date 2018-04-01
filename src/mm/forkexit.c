@@ -17,9 +17,11 @@
 /**
  * Perform the fork() syscall.
  *
- * @return Zero if success, otherwisr -1.
+ * @return Zero if success, otherwise -1.
  */
 PUBLIC int do_fork() {
+	printl("[MM] do_fork\n");
+
 	// find a free slot in proc_table
 	struct proc* p = proc_table;
 
@@ -30,8 +32,8 @@ PUBLIC int do_fork() {
 
 	int child_pid = i;
 	assert(p == &proc_table[child_pid]);
-	assert(child_pid >= NR_TASKS + NR_PROCS);
-	if (i == NR_TASKS + NR_TASKS)	// no free solt
+	assert(child_pid >= NR_TASKS + NR_NATIVE_PROCS);
+	if (i == NR_TASKS + NR_PROCS)	// no free solt
 			return -1;
 	assert(i < NR_TASKS + NR_PROCS);
 
@@ -55,7 +57,7 @@ PUBLIC int do_fork() {
 									ppd->base_low);
 
 	// limit of T-seg, in 1 or 4096 bytes
-	// depending on the H bit of descriptor
+	// depending on the G bit of descriptor
 	int caller_T_limit = reassembly(0, 0, 
 									(ppd->limit_high_attr2 & 0xF),
 									16,
@@ -74,7 +76,7 @@ PUBLIC int do_fork() {
 									ppd->base_low);
 
 	// limit of D&S-seg, in 1 or 4096 bytes
-	// depending on the H bit of descriptor
+	// depending on the G bit of descriptor
 	int caller_D_S_limit = reassembly((ppd->limit_high_attr2 & 0xF),
 									16, 
 									0, 0,
@@ -84,16 +86,16 @@ PUBLIC int do_fork() {
 	int caller_D_S_size = (caller_T_limit + 1) *
     						 ((ppd->limit_high_attr2 & (DA_LIMIT_4K >> 8)) ? 4096 : 1);
     
-	// we don't separate T, D & S segmengs, so we have
+	// we don't separate T, D & S segments, so we have
 	assert((caller_T_base == caller_D_S_base) && 
 			(caller_T_limit == caller_D_S_limit) &&
 			(caller_T_size == caller_D_S_size));
 
-	// base of cahild proc, T, D & S segments share the samo space
-	// so we allocate memroy just once
+	// base of child proc, T, D & S segments share the same space
+	// so we allocate memory just once
 	int child_base = alloc_mem(child_pid, caller_T_size);
-	// int child_limit = caller_D_S_limit;
-	printl("(MM) 0x%x <- 0x%x (0x%x bytes)\n", child_base, caller_T_base, caller_T_size);
+	// int child_limit = caller_T_limit;
+	printl("[MM] 0x%x <- 0x%x (0x%x bytes)\n", child_base, caller_T_base, caller_T_size);
 	// child is a copy of the parent
 	phys_copy((void*)child_base, (void*)caller_T_base, caller_T_size);
 
@@ -126,3 +128,15 @@ PUBLIC int do_fork() {
 
 	return 0;
 }
+
+PUBLIC void do_exit(int status) {
+	printl("[MM] do_exit\n");
+
+}
+
+PUBLIC void do_wait() {
+	printl("[MM] do_wait\n");
+}
+
+
+

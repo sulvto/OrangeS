@@ -18,7 +18,6 @@
 #define TTY_FIRST   (tty_table)
 #define TTY_END     (tty_table + NR_CONSOLES)
 
-#define TTY_OUT_BUF_LEN 256
 
 PRIVATE void init_tty(TTY* p_tty);
 PRIVATE void tty_do_read(TTY* tty, MESSAGE* msg);
@@ -102,12 +101,12 @@ PUBLIC void in_process(TTY* p_tty, u32 key) {
                 break;
             case UP:
                 if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {
-                    scroll_screen(p_tty->p_console,SCR_DN);
+                    scroll_screen(p_tty->p_console, SCR_DN);
                 }
                 break;
             case DOWN:
                 if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {
-                    scroll_screen(p_tty->p_console,SCR_UP);
+                    scroll_screen(p_tty->p_console, SCR_UP);
                 }
                 break;
             case F1:
@@ -172,17 +171,19 @@ PRIVATE void tty_dev_write(TTY* tty) {
 
         if (tty->tty_left_cnt) {
             if (ch >= ' ' && ch <= '~') {   // printable (see ascii)
-                out_char(tty->p_console,ch);
+                out_char(tty->p_console, ch);
                 void* p = tty->tty_req_buf + tty->tty_trans_cnt;
                 phys_copy(p, (void *)va2la(TASK_TTY, &ch), 1);
                 tty->tty_trans_cnt++;
                 tty->tty_left_cnt--;
             } else if (ch == '\b' && tty->tty_trans_cnt) {
-                out_char(tty->p_console,ch);
+                out_char(tty->p_console, ch);
                 tty->tty_trans_cnt--;
                 tty->tty_left_cnt++;
-            } else if (ch == '\n' || tty->tty_left_cnt == 0) {
-                out_char(tty->p_console,ch);
+            }
+
+             if (ch == '\n' || tty->tty_left_cnt == 0) {
+                out_char(tty->p_console, '\n');
                 MESSAGE msg;
                 msg.type = RESUME_PROC;
                 msg.PROC_NR = tty->tty_proc_nr;
@@ -226,7 +227,7 @@ PRIVATE void tty_do_read(TTY* tty, MESSAGE* msg) {
  */
 PRIVATE void tty_do_write(TTY* tty, MESSAGE* msg) {
     char buf[TTY_OUT_BUF_LEN];
-    char *p = (void *) va2la(msg->PROC_NR, msg->BUF);
+    char *p = (char *) va2la(msg->PROC_NR, msg->BUF);
     int i = msg->CNT;
     int j;
 
@@ -243,7 +244,7 @@ PRIVATE void tty_do_write(TTY* tty, MESSAGE* msg) {
     send_recv(SEND, msg->source, msg);
 }
 
-PUBLIC int sys_printx(int _unusedl, int _unused2, char* s, struct proc* p_proc) {
+PUBLIC int sys_printx(int _unused1, int _unused2, char* s, struct proc* p_proc) {
     const char * p;
     char ch;
 
@@ -267,7 +268,7 @@ PUBLIC int sys_printx(int _unusedl, int _unused2, char* s, struct proc* p_proc) 
             *v++ = *q++;
             *v++ = RED_CHAR;
             if (!*q) {
-                while (((int)v - V_MEM_SIZE) & (SCR_WIDTH * 16)) {
+                while (((int)v - V_MEM_BASE) & (SCR_WIDTH * 16)) {
                     v++;
                     *v++ = GRAY_CHAR;
                 }
@@ -280,7 +281,7 @@ PUBLIC int sys_printx(int _unusedl, int _unused2, char* s, struct proc* p_proc) 
 
     while ((ch = *p++) != 0) {
         if (ch == MAG_CH_PANIC || ch == MAG_CH_ASSERT) continue; // skip the magic char
-        out_char(tty_table[p_proc->nr_tty].p_console, ch);
+        out_char(TTY_FIRST->p_console, ch);
     }
 
     return 0;

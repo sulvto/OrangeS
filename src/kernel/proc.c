@@ -47,7 +47,7 @@ PUBLIC void schedule() {
         if (!greatest_ticks) {
             for (p = &FIRST_PROC; p <= &LAST_PROC; p++) {
                 if (p->p_flags == 0){
-                    p->ticks = p->priority;;
+                    p->ticks = p->priority;
                 }
             }
         }
@@ -78,10 +78,10 @@ PUBLIC int sys_sendrec(int function, int src_dest, MESSAGE* m, struct proc* p) {
     if (function == SEND) {
         ret = msg_send(p, src_dest, m);
         if (ret != 0) return ret;
-    }else if (function == RECEIVE) {
+    } else if (function == RECEIVE) {
         ret = msg_receive(p, src_dest, m);
         if (ret != 0) return ret;
-    }else {
+    } else {
         panic("{sys_sendrec} invalid function: %d (SEND:%d, RECEIVE:%d).", function, SEND, RECEIVE);
     }
     return 0;
@@ -140,7 +140,7 @@ PUBLIC void* va2la(int pid, void* va) {
     u32 seg_base = ldt_seg_linear(p, INDEX_LDT_RW);
     u32 la = seg_base + (u32)va;
 
-    if (pid < NR_TASKS + NR_PROCS) {
+    if (pid < NR_TASKS + NR_NATIVE_PROCS) {
         assert(la == (u32)va);
     }
 
@@ -333,7 +333,7 @@ PRIVATE int msg_receive(struct proc* current, int src, MESSAGE* m) {
             assert(p_who_wanna_recv->p_flags == 0);
             assert(p_who_wanna_recv->p_msg == 0);
             assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
-            assert(p_who_wanna_recv->p_sendto== NO_TASK);
+            assert(p_who_wanna_recv->p_sendto == NO_TASK);
             assert(p_who_wanna_recv->q_sending != 0);
             assert(p_from->p_flags == SENDING);
             assert(p_from->p_msg != 0);

@@ -21,6 +21,8 @@ PUBLIC u32 seg2phys(u16 seg);
 PUBLIC void init_descriptor(struct descriptor * p_desc, u32 base, u32 limit, u16 attribute);
 
 // klib.c
+PUBLIC void get_boot_params(struct boot_params * pbp);
+PUBLIC int get_kernel_map(unsigned int *base, unsigned int * limit);
 PUBLIC void delay(int time);
 PUBLIC void disp_int(int input);
 PUBLIC char * itoa(char * str, int num);
@@ -116,6 +118,8 @@ PUBLIC int fork();
 
 // mm/forkexit
 PUBLIC int do_fork();
+PUBLIC void do_exit(int status);
+PUBLIC void do_wait();
 // mm/main.c
 PUBLIC void task_mm();
 PUBLIC int alloc_mem(int pid, int memsize);

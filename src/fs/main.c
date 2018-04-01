@@ -21,6 +21,7 @@ PRIVATE void init_fs();
 PRIVATE void mkfs();
 PRIVATE void read_super_block(int dev);
 PRIVATE int fs_fork();
+PRIVATE int fs_exit();
 
 /**
  * <Ring 1> The main loop of TASK FS
@@ -54,6 +55,9 @@ PUBLIC void task_fs() {
                 break;
             case FORK:
                 fs_msg.RETVAL = fs_fork();
+                break;
+            case EXIT:
+                fs_msg.RETVAL = fs_exit();
                 break;
             
         }
@@ -338,4 +342,9 @@ PRIVATE int fs_fork() {
 	}
 
 	return 0;
+}
+
+PRIVATE int fs_exit() {
+    printl("[FS] fs_exit");
+    return -1;
 }

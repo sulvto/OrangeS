@@ -56,8 +56,8 @@ PUBLIC int kernel_main() {
 			p_proc->ldts[INDEX_LDT_C] 	= gdt[SELECTOR_KERNEL_CS >> 3];  
 			p_proc->ldts[INDEX_LDT_RW] 	= gdt[SELECTOR_KERNEL_DS >> 3];
 
-			p_proc->ldts[INDEX_LDT_C].attr1 	= DA_C 		| PRIVILEGE_TASK << 5;  // change the DPL
-            p_proc->ldts[INDEX_LDT_RW].attr1 	= DA_DRW 	| PRIVILEGE_TASK << 5;  // change the DPL
+			p_proc->ldts[INDEX_LDT_C].attr1 	= DA_C 		| privilege << 5;  // change the DPL
+            p_proc->ldts[INDEX_LDT_RW].attr1 	= DA_DRW 	| privilege << 5;  // change the DPL
 		} else {
 			unsigned int k_base;
 			unsigned int k_limit;
@@ -140,7 +140,7 @@ PUBLIC void panic(const char *fmt, ...) {
 
     i = vsprintf(buf, fmt, arg);
 
-    printl("%c !!painc!! %s", MAG_CH_PANIC, buf);
+    printl("%c !!panic!! %s", MAG_CH_PANIC, buf);
 
     __asm__ __volatile__("ud2");
 }
@@ -163,84 +163,29 @@ void Init() {
 	int fd_stdout = open("/dev_tty0", O_RDWR);
     assert(fd_stdout == 1);
 
-	printf("Init() is runing ...\n");
+	printf("Init() is running ...\n");
 
 	int pid = fork();
 
 	// parent process
 	if (pid != 0) {
-		printf("parent is runing, child pid:%d\n", pid);
+		printf("parent is running, child pid:%d\n", pid);
+		spin("parent");
 	} else {
-		printf("child is runing, pid:%d\n", getpid());
+		printf("child is running, pid:%d\n", getpid());
 		spin("child");
 	}
 
 }
 
 void TestA() {
-    const char filename[] = "blah";
-    const char bufw[] = "sulvt";
-    const int rd_bytes = 5;
-    char bufr[rd_bytes];
-
-    assert(rd_bytes <= strlen(bufw));
-
-    // create
-    int fd = open(filename, O_CREAT|O_RDWR);
-    assert(fd != -1);
-    printl("File created.  FD: %d\n", fd);
-
-    // write
-    int n = write(fd, bufw, strlen(bufw));
-    assert(n ==  strlen(bufw));
-    close(fd);
-
-    // open
-    fd = open(filename, O_RDWR);
-    assert(fd != -1);
-    printl("File opened.  FD: %d\n", fd);
-
-    // write
-    n = read(fd, bufr, rd_bytes);
-    assert(n ==  rd_bytes);
-    bufr[n] = 0;
-    printl("%d bytes read: %s\n", n, bufr);
-
-    // close
-    close(fd);
-
-    spin("TestA");
+    for (; ;);
 }
 
 void TestB() {
-    char tty_name[] = "/dev_tty2";
-
-	int fd_stdin  = open(tty_name, O_RDWR);
-	assert(fd_stdin  == 0);
-	int fd_stdout = open(tty_name, O_RDWR);
-	assert(fd_stdout == 1);
-
-	char rdbuf[128];
-
-	while (1) {
-		printf( "$ ");
-		int r = read(fd_stdin, rdbuf, 70);
-		rdbuf[r] = 0;
-
-		if (strcmp(rdbuf, "hello") == 0)
-			printf( "hello world!\n");
-		else
-			if (rdbuf[0])
-				printf( "{%s}\n", rdbuf);
-	}
-
-	assert(0); /* never arrive here */
+    for (; ;);
 }
 
 void TestC() {
-    int i=0X2000;
-    while(1) {
-        printl("C.");
-        milli_delay(10);
-    }
+    for (; ;);
 }
