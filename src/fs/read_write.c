@@ -29,7 +29,7 @@ PUBLIC int do_rdwt() {
     }
     int pos = pcaller->filp[fd]->fd_pos;
     struct inode * pin = pcaller->filp[fd]->fd_inode;
-    
+
     assert(pin >= &inode_table[0] && pin < &inode_table[NR_INODE]);
     int imode = pin->i_mode & I_TYPE_MASK;
     

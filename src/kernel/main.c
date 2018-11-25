@@ -129,7 +129,7 @@ PUBLIC int kernel_main() {
 
     restart();
 
-    while(1){}
+    while(1) {}
 }
 
 PUBLIC void panic(const char *fmt, ...) {
@@ -171,6 +171,9 @@ void Init() {
 	// parent process
 	if (pid != 0) {
 		printf("parent(PID: %d) is running, child pid:%d\n", getpid(), pid);
+        // int s;
+        // int child = wait(&s);
+        // printl("child(PID: %d) exited with status: %d\n", child, s);
 	}
     // child process
     else {
@@ -181,7 +184,6 @@ void Init() {
     while (1) {
         int s;
         int child = wait(&s);
-        // TODO use printf() ??
         printl("PID: %d, child (%d) exited with status: %d\n", getpid(), child, s);
     }
 
