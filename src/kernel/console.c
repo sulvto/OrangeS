@@ -88,7 +88,7 @@ PUBLIC void out_char(CONSOLE* p_console,char ch) {
 PRIVATE void flush(CONSOLE* p_console) {
     if (is_current_console(p_console)) {
         set_cursor(p_console->cursor);
-        set_video_start_addr(p_console->current_start_addr);    
+        set_video_start_addr(p_console->current_start_addr);
     }
     
     
