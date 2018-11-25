@@ -215,7 +215,7 @@ PRIVATE void partition(int device, int style) {
         get_part_table(drive, drive, part_tbl);
         
         int nr_prim_parts = 0;
-        for (int i=0; i < NR_PART_PER_DRIVE; i++) {
+        for (int i = 0; i < NR_PART_PER_DRIVE; i++) {
             if (part_tbl[i].sys_id == NO_PART) {
                 continue;
             }
@@ -229,7 +229,7 @@ PRIVATE void partition(int device, int style) {
             }
         }
         assert(nr_prim_parts != 0);
-    } else if (style == P_EXTENDED){
+    } else if (style == P_EXTENDED) {
         int j = device % NR_PRIM_PER_DRIVE;
         int ext_start_sect = hdi->primary[j].base;
         int s = ext_start_sect;
