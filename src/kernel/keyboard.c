@@ -269,7 +269,7 @@ PUBLIC void keyboard_read(TTY* p_tty) {
                 key |= alt_l   ? FLAG_ALT_L   : 0;
                 key |= alt_r   ? FLAG_ALT_R   : 0;
                 
-                in_process(p_tty,key);
+                in_process(p_tty, key);
             }
         }
     }

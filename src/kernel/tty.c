@@ -141,6 +141,7 @@ PRIVATE void put_key(TTY* p_tty, u32 key) {
         }
         p_tty->inbuf_count++;
     }
+
 }
 
 /**

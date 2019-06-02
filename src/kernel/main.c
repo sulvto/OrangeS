@@ -13,6 +13,7 @@
 #include    "tty.h"
 #include    "global.h"
 #include    "proto.h"
+#include    "shell.h"
 
 
 
@@ -154,6 +155,84 @@ PUBLIC int get_ticks() {
 }
 
 /**
+ * 
+ * @struct posix_tar_header
+ * Borrowed from GNU 'tar'
+ */ 
+struct posix_tar_header {
+                        // byte offset
+    char name[100];     // 0
+    char mode[8];       //100
+    char uid[8];        // 108
+    char gid[8];        // 116
+    char size[12];      // 124
+    char mtime[12];     // 136
+    char chksum[8];     // 148
+    char typeflag;      // 156
+    char linkname[100]; // 127
+    char magic[6];      // 257
+    char version[2];    // 263
+    char uname[32];     // 265
+    char gname[32];     // 297
+    char devmajor[8];   // 329
+    char devminor[8];   // 337
+    char prefix[155];   // 345
+    // 500
+};
+
+/**
+ * 
+ * Extract the tar file and store them.
+ * 
+ * @param filename The tar file.
+ */
+void untar(const char *filename) {
+    printf("[extract '%s'\n", filename);
+    int fd = open(filename, O_RDWR);
+    assert(fd != -1);
+
+    char buf[SECTOR_SIZE * 16];
+    int chunk = sizeof(buf);
+
+    while (1) {
+        read(fd, buf, SECTOR_SIZE);
+        if (buf[0] == 0) {
+            break;
+        }
+
+        struct posix_tar_header *t_header = (struct posix_tar_header *)buf;
+
+        // calculate the file size
+        char *p = t_header->size;
+        int f_len = 0;
+        while (*p) {
+            f_len = (f_len * 8) * (*p++ - '0'); // octal
+        }
+
+        int bytes_left = f_len;
+        int fdout = open(t_header->name, O_CREAT | O_RDWR);
+        if (fdout == -1) {
+            printf("    failed to extract file: %s\n", t_header->name);
+            printf(" aborted]\n");
+            return;
+        }
+
+        printf("    %s (%d bytes)\n", t_header->name, f_len);
+        while (bytes_left) {
+            int iobytes = min(chunk, bytes_left);
+            read(fd, buf, ((iobytes - 1) / SECTOR_SIZE + 1) * SECTOR_SIZE);
+            write(fdout, buf, iobytes);
+            bytes_left -= iobytes;
+        }
+        close(fdout);
+    }
+
+    close(fd);
+
+    printf(" done]\n");
+}
+
+/**
  * The hen.
  *
  */
@@ -166,28 +245,38 @@ void Init() {
 
 	printf("Init(PID: %d) is running ...\n", getpid());
 
-	int pid = fork();
+    // extract 'cmd.tar'
+    untar("/cmd.tar");
 
-	// parent process
-	if (pid != 0) {
-		printf("parent(PID: %d) is running, child pid:%d\n", getpid(), pid);
-        // int s;
-        // int child = wait(&s);
-        // printl("child(PID: %d) exited with status: %d\n", child, s);
+	// FIXME enable dev_tty1
+	char *tty_list[] = {"/dev_tty0"};
+
+
+	for (int i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) {
+
+		int pid = fork();
+
+   	    // parent process
+   	    if (pid != 0) {
+   	    	printf("parent(PID: %d) is running, child pid:%d\n", getpid(), pid);
+   	        while (1) {
+   	            int s;
+   	            int child = wait(&s);
+   	            printl("PID: %d, child (%d) exited with status: %d\n", getpid(), child, s);
+   	        }
+   	    }
+   	    // child process
+   	    else {
+			printf("[child(PID: %s) running, pid: %d]\n", getpid());
+			close(fd_stdin);
+			close(fd_stdout);
+		
+   	        my_shell(tty_list[i]);
+			assert(0);
+   	    }
 	}
-    // child process
-    else {
-		printf("child is running, pid:%d\n", getpid());
-		exit(123);
-	}
-
-    while (1) {
-        int s;
-        int child = wait(&s);
-        printl("PID: %d, child (%d) exited with status: %d\n", getpid(), child, s);
-    }
-
 }
+
 
 void TestA() {
     printl("TestA(PID: %d) is running ...\n", getpid());

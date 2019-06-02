@@ -21,7 +21,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define O_CREAT     1
 #define O_RDWR      2
 
-#define	MAX_PATH	128
+#define MAX_PATH    128
 
 /**
  * 库函数

@@ -224,5 +224,11 @@ enum msgtype {
 
 #define NR_DEFAULT_FILE_SECTS   2048
 
+#define MAX_ARG_NR      128
+#define MAX_PATH_LEN    128
+
+#define STDIN_NO		0
+#define STDOUT_NO		1		
+
 #endif
 

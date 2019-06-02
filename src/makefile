@@ -30,7 +30,7 @@ OBJS		  = kernel/kernel.o kernel/syscall.o kernel/start.o kernel/main.o \
 				lib/open.o lib/read.o lib/write.o lib/close.o \
 				lib/unlink.o lib/fork.o lib/wait.o lib/exit.o lib/getpid.o \
 				fs/link.o fs/main.o fs/open.o fs/misc.o fs/read_write.o \
-				mm/forkexit.o mm/main.o
+				mm/forkexit.o mm/main.o shell/buildin_cmd.o shell/shell.o
 				
 DASMOUTPUT	  = kernel.bin.asm
 
@@ -172,4 +172,11 @@ mm/main.o: mm/main.c
 		$(CC) $(CFLAGS) -o $@ $<
 
 mm/forkexit.o: mm/forkexit.c
+		$(CC) $(CFLAGS) -o $@ $<
+
+
+shell/buildin_cmd.o: shell/buildin_cmd.c
+		$(CC) $(CFLAGS) -o $@ $<
+
+shell/shell.o: shell/shell.c
 		$(CC) $(CFLAGS) -o $@ $<
